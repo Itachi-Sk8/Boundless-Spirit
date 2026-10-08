@@ -1,0 +1,23 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://player/spirit.gd" id="1_spirit"]
+[ext_resource type="SpriteFrames" path="res://player/hero_frames.tres" id="2_frames"]
+[ext_resource type="Shader" path="res://shaders/spirit_glow.gdshader" id="3_glow"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_glow"]
+shader = ExtResource("3_glow")
+
+[node name="Spirit" type="CharacterBody2D"]
+collision_layer = 0
+collision_mask = 17
+motion_mode = 1
+script = ExtResource("1_spirit")
+
+[node name="Sprite" type="AnimatedSprite2D" parent="."]
+material = SubResource("ShaderMaterial_glow")
+position = Vector2(0, -16)
+sprite_frames = ExtResource("2_frames")
+animation = &"fall"
+autoplay = "fall"
+
+[node name="Body" type="CollisionShape2D" parent="."]

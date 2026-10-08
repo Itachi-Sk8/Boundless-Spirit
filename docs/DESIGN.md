@@ -104,6 +104,26 @@ The GameMaker prototype's values are a good base. They carry over converted from
 
 With these values a full jump rises about 73 px (roughly 4.5 tiles), and a double jump adds about 42 px (roughly 2.5 tiles). After tuning, Claude will measure jump height, jump distance, and dash reach in a test room and record them here. Those numbers become the rules for building gaps and ledges.
 
+**Level-building numbers** (measured Oct 8, 2026 by the headless movement tests after the first playtest, with gravity raised 12.5% to 1115 px/s² for a snappier feel; rerun after any tuning change)
+
+| Move | Reach | In tiles | Building rule |
+| --- | --- | --- | --- |
+| Full jump height | 71 px | 4.5 | A 4-tile ledge is a jump; 5 tiles needs help |
+| Short hop (tap) | 15 px | 0.9 | |
+| Running jump, widest gap | 185 px | 11.6 | 10 tiles is a comfortable plain jump; 11 is the limit |
+| Dash | 80 px | 5.0 | In any of 8 directions |
+| Dash straight up from the floor | 90 px | 5.6 | |
+| Jump, then up dash at the top | 161 px | 10.1 | |
+| Jump + double jump | 114 px | 7.1 | 6 tiles is comfortable; 7 is barely reachable |
+| Slide | 115 px | 7.2 | Fits 1-tile gaps; crouching doesn't |
+| Slide jump, widest gap | 260 px | 16.3 | Speed is kept through the jump |
+| Ledge grab | Hands reach 6 tiles up | 6 | A 6-tile wall needs Climb |
+| Spirit Phase | 270 px | 16.9 | Straight line, 1.5 s |
+| Death to control | 21 frames | | 0.35 s |
+
+- **Two facing walls, enforced:** after a wall jump, another wall jump off the same side needs a landing first; pressing jump on that wall uses the double jump instead. A switch in the tuning file turns this off.
+- **Slide jump:** holding the direction keeps the slide's full speed until landing, so the long jump reaches about 4.5 tiles further than a running jump.
+
 ## Map at a glance
 
 &#91;embedded content: world map · hub, six regions, finale, and the ability that opens each path\]

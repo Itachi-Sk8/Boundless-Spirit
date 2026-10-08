@@ -713,7 +713,12 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": SubResource("jump_2")
+}],
+"loop": false,
+"name": &"jump",
+"speed": 10.0
 }, {
+"frames": [{
 "duration": 1.0,
 "texture": SubResource("jump_3")
 }, {
@@ -724,8 +729,8 @@ animations = [{
 "texture": SubResource("jump_5")
 }],
 "loop": false,
-"name": &"jump",
-"speed": 6.0
+"name": &"fall",
+"speed": 10.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -757,7 +762,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"land",
-"speed": 10.0
+"speed": 30.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -931,7 +936,12 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": SubResource("dash_4")
+}],
+"loop": false,
+"name": &"dash",
+"speed": 30.0
 }, {
+"frames": [{
 "duration": 1.0,
 "texture": SubResource("dash_5")
 }, {
@@ -945,8 +955,8 @@ animations = [{
 "texture": SubResource("dash_8")
 }],
 "loop": false,
-"name": &"dash",
-"speed": 5.0
+"name": &"dash_end",
+"speed": 20.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -969,7 +979,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"air_spin",
-"speed": 10.0
+"speed": 24.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -983,7 +993,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"wall_slide",
-"speed": 3.0
+"speed": 6.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -1006,7 +1016,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"wall_land",
-"speed": 6.0
+"speed": 18.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -1033,14 +1043,19 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("slide_7")
 }],
-"loop": false,
+"loop": true,
 "name": &"slide",
-"speed": 10.0
+"speed": 15.0
 }, {
 "frames": [{
 "duration": 1.0,
 "texture": SubResource("ledge_climb_0")
+}],
+"loop": false,
+"name": &"ledge_hang",
+"speed": 1.0
 }, {
+"frames": [{
 "duration": 1.0,
 "texture": SubResource("ledge_climb_1")
 }, {
@@ -1055,7 +1070,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"ledge_climb",
-"speed": 10.0
+"speed": 16.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -1072,7 +1087,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"climb_side",
-"speed": 10.0
+"speed": 8.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -1089,7 +1104,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"climb_back",
-"speed": 10.0
+"speed": 8.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -1124,7 +1139,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"death",
-"speed": 6.0
+"speed": 30.0
 }, {
 "frames": [{
 "duration": 1.0,

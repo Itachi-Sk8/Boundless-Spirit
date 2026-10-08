@@ -4,3 +4,4 @@
 
 [resource]
 script = ExtResource("1_tuning")
+gravity = 1115.0

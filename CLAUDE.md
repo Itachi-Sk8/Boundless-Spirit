@@ -28,8 +28,9 @@ and update it when a decision changes (for example, record measured jump and das
 
 1. **Setup** (done): Godot project, folder layout, pixel-perfect settings, hero animations,
    grey hero standing in an empty room.
-2. Movement test room: starting moves, death/respawn, camera, all six abilities behind debug
-   switches; record level-building numbers in `docs/DESIGN.md`.
+2. **Movement test room** (done; feel approved by @Ben at v1.0.3, may be retuned as levels
+   arrive): starting moves, death/respawn, camera, all six abilities behind debug switches;
+   level-building numbers are in `docs/DESIGN.md` and get re-measured after tuning.
 3. Vertical slice: the Hollow + Ember Grove, room changes, checkpoints, autosave, first Spirit
    Room, orange unlock.
 4. Content tools. 5. Regions 2–6. 6. The Heart and endings. 7. Optional content and polish.
@@ -47,6 +48,7 @@ res://
   shaders/   palette swap, world color, spirit glow
   art/       sprites, tilesets, backgrounds
   audio/     music, sound effects
+  tests/     headless movement tests and measurements
 docs/              design doc
 gamemaker-legacy/  the old GameMaker prototype and raw asset packs (reference only)
 ```
@@ -60,25 +62,44 @@ gamemaker-legacy/  the old GameMaker prototype and raw asset packs (reference on
 
 ## What exists now
 
-- `project.godot`: 480×270 viewport, 1920×1080 window, `viewport` stretch with integer scale,
+- `project.godot`: 480×270 viewport, window sized at startup to the largest whole-number scale that fits the screen (3× = 1440×810 on 1080p, 4× = 1920×1080 on 1440p; `game/settings.gd`), `viewport` stretch with integer scale,
   nearest filtering, 2D transform and vertex snapping, 60 physics ticks, Compatibility
   renderer. Keep these; they're what make the pixels crisp.
-- `player/player.tscn`: CharacterBody2D (`player.gd`) with an AnimatedSprite2D `Sprite` using
-  `player/hero_frames.tres` and the `hero_palette` shader, plus a 10×26 `Body` collision box.
-  The player only falls and stands for now.
-- `player/player_tuning.gd` + `player/tuning.tres`: every movement number, starting from the
-  prototype's values converted to per-second.
-- `player/hero_frames.tres`: 20 animations from `art/hero/*.png`: idle, walk, run, jump, land,
-  crouch_idle, crouch_walk, push, pull, push_idle, dash, air_spin, wall_slide, wall_land, slide,
-  ledge_climb, climb_side, climb_back, death, roll. Frame rates are the prototype's (10 where
-  it had none) and still need tuning, especially dash (5 fps is far too slow for a 0.15 s dash).
-- `shaders/hero_palette.gdshader`: greys each locked body part. Each part has its own hue, so a
-  pixel's hue picks its part: red <15° or ≥330°, orange <40°, yellow <75°, green <150°,
-  blue <250°, purple otherwise. Pixels below 0.25 saturation (dust and effect colors) pass
-  through. One bool uniform per color, all false by default.
-- `rooms/_template/room_template.tscn`: the main scene for now. Grey background, a floor
-  whose top is at y = 224, a `Spawn` marker, and the player. It grows into the real room
-  template (tile layers, camera bounds, spawn points, exits) in later milestones.
+- Autoloads: `GameState` (`game/game_state.gd`: colors, deaths; saving comes later) and
+  `Settings` (`game/settings.gd`: F11 fullscreen for now).
+- Input map in `project.godot`, matching the design doc's controls table: `move_*`, `jump`,
+  `dash`, `slide`, `grab`, `spirit`, `map`, `pause`, plus `toggle_fullscreen`.
+- Physics layers: 1 world, 2 player, 3 hazards, 4 spirit_barriers, 5 push_blocks, 6 vines.
+  The player collides with 1, 4, 5; the spirit with 1 and 5, so it passes barriers.
+- **Player** (`player/player.tscn`, `player.gd`): CharacterBody2D with a `Sprite` and a `Body`
+  box that changes size for standing, crouching (18 px, too tall for 1-tile gaps), and sliding
+  (12 px). `player.gd` holds what states share: input, timers, charges, `try_*()` moves that
+  switch state, and overlap queries. States live in `player/states/`, one script each:
+  idle, run, crouch, jump, fall, dash, wall_slide, slide, ledge_grab, climb, spirit_phase,
+  push, dead. Each ability's `try_*()` checks its color with `can()`.
+- **Tuning** (`player/player_tuning.gd` + `player/tuning.tres`): every movement number and
+  hitbox. The camera's numbers are exports on `game/game_camera.gd`.
+- **Animations** (`player/hero_frames.tres`): built from `art/hero/*.png`. Some sheets are
+  split: `jump`/`fall` (frames 0-2 / 3-5), `dash`/`dash_end`, `ledge_hang`/`ledge_climb`.
+  Frame rates are still placeholders.
+- **Shaders:** `hero_palette.gdshader` greys locked body parts by hue (red <15° or ≥330°,
+  orange <40°, yellow <75°, green <150°, blue <250°, purple otherwise; below 0.25 saturation
+  passes through) and dims a part whose ability is spent (`torso_spent`, `back_leg_spent`,
+  `head_spent`): the body is the HUD. `spirit_glow.gdshader` draws the spirit.
+- **Rooms:** `rooms/room.gd` (`Room`) expects `Tiles`, `Spawn`, `Player`, `Camera` children;
+  takes camera and pit bounds from the painted tiles; on death it calls `reset_to_start()` on
+  the `room_reset` group and respawns the hero. `rooms/_template/room_template.tscn` is a
+  one-screen room with that structure.
+- **Movement test room** (`rooms/test/movement_test.tscn`, the main scene): built at load from
+  the text layout in `movement_test.gd`, so changing a gap is a text edit. Stations left to
+  right: heights, crouch, gaps, push block, dash, ember, double jump, wall-jump shaft, slide
+  tunnel and long jump, ledge and vines, spirit barrier. The debug overlay
+  (`ui/debug_overlay.tscn`) shows state and charges; keys 1-6 toggle colors, 0 all, R respawn,
+  F3 hide.
+- **Tiles:** `art/tilesets/test_tiles.tres` is the grey test set: two solid shades, one-way
+  platform, spikes in four directions (hitboxes smaller than the art), spirit barrier, vines.
+- **Entities:** `push_block` (moved only while holding Grab) and `dash_ember` (refills the dash
+  in midair, relights after 2 s).
 
 ## Conventions
 
@@ -119,13 +140,31 @@ gamemaker-legacy/  the old GameMaker prototype and raw asset packs (reference on
   repo root.
 - **Script and scene errors without a window:** `godot --headless --path . --import` reimports
   and reports errors, and `godot --headless --path . --quit-after 60` runs the main scene briefly.
+- **Movement tests:** `godot --headless --path . --fixed-fps 60 res://tests/run_tests.tscn`
+  runs every movement rule and prints the level-building numbers; the exit code is the number
+  of failures. Run it after any change to the player or tuning, and update the numbers table
+  in `docs/DESIGN.md` when they move.
 - **Screenshots without playing:** `godot --path . --write-movie out.png --fixed-fps 60
   --quit-after 30` writes 480×270 PNG frames of the main scene.
 - Feel can't be checked automatically; after movement changes, ask @Ben for a playtest and take
   feel notes literally ("the jump floats at the top").
 
+**Godot gotchas found the hard way**
+- An Area2D never reports tile collision layers (both count as static to the physics engine).
+  Check hazards and vines with direct shape queries, as `Player._overlaps()` does.
+- `godot -s script.gd` compiles the script before autoloads exist, so anything touching
+  `GameState` fails. Run test code as a scene instead.
+- `Input.action_press()` made inside a physics frame counts as "just pressed" only on the next
+  frame. The test harness presses buttons between frames (it steps on `process_frame`) so
+  pressed and just-pressed begin together, like real input.
+- Timers count down in floating point: compare against `Player.EPSILON`, not 0, or a 0.15 s
+  timer sometimes lasts 10 frames instead of 9.
+
 ## Workflow
 
+- **Version:** bump the patch number of `application/config/version` in `project.godot`
+  (1.0.1 → 1.0.2) after every requested change, so @Ben can tell builds apart in the debug
+  overlay. 1.0.1 was the first playtest's gravity change.
 - Small steps: one feature, one playtest, one commit, so any change can be rolled back.
 - Commit and push only when asked.
 - Licenses for Asset Packs 1–5 and the Legacy-Fantasy pack must be confirmed before any paid
