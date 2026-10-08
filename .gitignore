@@ -1,0 +1,9 @@
+# Godot 4 cache and imported files (rebuilt on open)
+.godot/
+
+# Builds
+/build/
+
+# OS clutter
+.DS_Store
+Thumbs.db

@@ -1,0 +1,26 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://player/player.gd" id="1_player"]
+[ext_resource type="Resource" path="res://player/tuning.tres" id="2_tuning"]
+[ext_resource type="SpriteFrames" path="res://player/hero_frames.tres" id="3_frames"]
+[ext_resource type="Shader" path="res://shaders/hero_palette.gdshader" id="4_palette"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_palette"]
+shader = ExtResource("4_palette")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
+size = Vector2(10, 26)
+
+[node name="Player" type="CharacterBody2D"]
+script = ExtResource("1_player")
+tuning = ExtResource("2_tuning")
+
+[node name="Sprite" type="AnimatedSprite2D" parent="."]
+material = SubResource("ShaderMaterial_palette")
+position = Vector2(0, -16)
+sprite_frames = ExtResource("3_frames")
+animation = &"idle"
+
+[node name="Body" type="CollisionShape2D" parent="."]
+position = Vector2(0, -13)
+shape = SubResource("RectangleShape2D_body")
