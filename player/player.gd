@@ -43,6 +43,9 @@ const EPSILON := 0.0001
 const VINE_SENSOR_HEIGHT := 14.0
 const VINE_SENSOR_SIZE := Vector2(4, 4)
 
+## Where the sprite sits relative to the feet (the art's feet are 16 px below its center).
+const SPRITE_OFFSET := Vector2(0, -16)
+
 ## Landing faster than this plays the landing sound, in px/s.
 const LAND_SOUND_SPEED := 120.0
 
@@ -91,6 +94,9 @@ var ledge_top_position := Vector2.ZERO
 ## Filled by try_push() for the push state.
 var push_block: PushBlock
 var push_side := 0
+## Pushes from wind gusts and waterfalls this frame (see add_push), cleared after moving.
+var push_drift := 0.0
+var push_lift := 0.0
 
 var _lock_timer := 0.0
 var _lock_side := 0
@@ -121,6 +127,12 @@ func _ready() -> void:
 	change_state(&"idle")
 
 
+# The game draws at screen resolution (so text is sharp), so keep the art on whole game
+# pixels: without this the hero could be drawn between the pixels of the world around it.
+func _process(_delta: float) -> void:
+	sprite.position = SPRITE_OFFSET + (global_position.round() - global_position)
+
+
 func _physics_process(delta: float) -> void:
 	if frozen:
 		return
@@ -131,6 +143,8 @@ func _physics_process(delta: float) -> void:
 		_state.physics_update(delta)
 	if state_name != &"dead" and touching_hazard():
 		die()
+	push_drift = 0.0
+	push_lift = 0.0
 	_update_spent_parts()
 
 
@@ -221,7 +235,15 @@ func move(delta: float) -> void:
 		_correct_corner(delta)
 	var was_on_floor := is_on_floor()
 	var fall_speed := velocity.y
+	# Wind carries the hero sideways like a moving walkway, and pushes up or down on its speed.
+	# Pressing down (a waterfall) also cuts a held jump short.
+	if push_lift > 0.0:
+		jump_hold_timer = 0.0
+	velocity.y += push_lift * delta
+	velocity.x += push_drift
 	move_and_slide()
+	if push_drift != 0.0:
+		velocity.x = 0.0 if is_on_wall() else velocity.x - push_drift
 	if is_on_floor() and not was_on_floor and fall_speed > LAND_SOUND_SPEED:
 		Sfx.play(&"land", -4.0)
 	if is_on_floor():
@@ -243,6 +265,37 @@ func _correct_corner(delta: float) -> void:
 					and not test_move(global_transform.translated(shift), rise):
 				global_position += shift
 				return
+
+
+## Shatter any breakable wall the last move ran into (dashes do this). True if one broke.
+func smash_breakables() -> bool:
+	var smashed := false
+	for i in get_slide_collision_count():
+		var wall := get_slide_collision(i).get_collider() as BreakableWall
+		if wall and wall.dash_breaks and not wall.broken:
+			wall.smash()
+			smashed = true
+	return smashed
+
+
+## Wind gusts and waterfalls call this every physics frame the hero is in them: `force.x`
+## carries the hero sideways (px/s), `force.y` changes its vertical speed (px/s², up is negative).
+func add_push(force: Vector2) -> void:
+	push_drift += force.x
+	push_lift += force.y
+
+
+## Bounce flowers call this: throw the hero straight up at `speed` px/s, like a jump that can't
+## be cut short, refilling the dash and double jump when `refill_charges` is set.
+func launch(speed: float, refill_charges := true) -> void:
+	if refill_charges:
+		refill()
+	velocity.y = -speed
+	jump_hold_timer = 0.0
+	jump_buffer_timer = 0.0
+	coyote_timer = 0.0
+	jump_anim = &"jump"
+	change_state(&"jump")
 
 
 # --- Charges -----------------------------------------------------------------------------
@@ -440,11 +493,14 @@ func on_vine() -> bool:
 	return _overlaps(global_position + Vector2(0.0, -VINE_SENSOR_HEIGHT), VINE_SENSOR_SIZE, VINE_LAYER)
 
 
-## The hazard box is the collision box shrunk by the hurtbox inset on every side.
+## The hazard box: the collision box shrunk by the hurtbox inset at the sides and feet, and
+## reaching up to the top of the drawn head (standing), so whatever the head touches counts.
 func touching_hazard() -> bool:
 	var size := shape_size(shape)
-	return _overlaps(global_position + Vector2(0.0, -size.y / 2.0),
-			size - Vector2.ONE * tuning.hurtbox_inset * 2.0, HAZARD_LAYER)
+	var inset := tuning.hurtbox_inset
+	var top := size.y + (tuning.hurtbox_head_reach if shape == Shape.STAND else -inset)
+	var box := Vector2(size.x - inset * 2.0, top - inset)
+	return _overlaps(global_position + Vector2(0.0, -inset - box.y / 2.0), box, HAZARD_LAYER)
 
 
 func adjacent_block(side: int) -> PushBlock:

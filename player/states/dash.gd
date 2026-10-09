@@ -30,7 +30,9 @@ func physics_update(delta: float) -> void:
 	player.velocity = _direction * (tuning.dash_distance / tuning.dash_time)
 	player.move(delta)
 	_time_left -= delta
-	var blocked := player.is_on_wall() and _direction.y == 0.0
+	# Dashing into a breakable wall shatters it and carries on through.
+	var smashed := player.smash_breakables()
+	var blocked := player.is_on_wall() and _direction.y == 0.0 and not smashed
 	if _time_left <= Player.EPSILON or blocked:
 		_finish()
 

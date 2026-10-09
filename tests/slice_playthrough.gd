@@ -54,8 +54,11 @@ func _run() -> void:
 
 func hollow_clearing_east() -> void:
 	check("starts in the Hollow clearing", main.room.room_id == &"hollow_clearing", str(main.room.room_id))
-	await run_to(130.0)
-	await leap(270.0, 240.0, "over the thorns")
+	# Over the thorns, wherever they are on the clearing's floor (moved and resized in the editor).
+	var thorns := main.room.get_node(^"Hazards").get_child(0) as Thorns
+	var hurt := thorns.get_global_transform() * thorns.hurt_rect()
+	await run_to(hurt.position.x - 40.0)
+	await leap(hurt.end.x + 22.0, 240.0, "over the thorns")
 	await run_to(325.0)
 	await leap(390.0, 208.0, "up onto the ledge")
 	await run_to(436.0)
@@ -155,7 +158,7 @@ func spirit_room() -> void:
 	await run_to(2318.0)
 	await leap(2196.0, -64.0, "over the second thorn pit")
 	await run_to(2152.0)
-	await leap(2028.0, -64.0, "under the thorn ceiling", 55.0)
+	await leap(2028.0, -64.0, "under the thorn ceiling", 46.0)
 	await run_to(1962.0)
 	await leap(1896.0, -96.0, "onto crumbling ledge 1")
 	await leap(1800.0, -112.0, "onto crumbling ledge 2")
@@ -200,8 +203,11 @@ func shortcut_home() -> void:
 	await run_until_room(&"hollow_clearing", -1.0)
 	await run_to(514.0)
 	await leap(420.0, 208.0, "back up onto the clearing's ledge")
-	await run_to(212.0)
-	await leap(110.0, 240.0, "back over the thorns")
+	# From the end of the ledge, over the thorns below it.
+	var thorns := main.room.get_node(^"Hazards").get_child(0) as Thorns
+	var hurt := thorns.get_global_transform() * thorns.hurt_rect()
+	await run_to(360.0)
+	await leap(minf(hurt.position.x - 24.0, 300.0), 240.0, "back over the thorns")
 	await run_until_room(&"hollow_west", -1.0)
 
 

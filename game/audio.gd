@@ -1,6 +1,7 @@
 extends Node
 ## Plays sound effects by name from res://audio/sfx/<name>.wav, through a small pool of
-## players so overlapping sounds don't cut each other off.
+## players so overlapping sounds don't cut each other off. They play on the SFX bus (its volume
+## is the sound setting) and keep playing while the game is paused, so menus can click.
 
 const SFX_DIR := "res://audio/sfx/"
 const POOL_SIZE := 8
@@ -14,8 +15,10 @@ var _silent := AudioServer.get_driver_name() == "Dummy"
 
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	for i in POOL_SIZE:
 		var player := AudioStreamPlayer.new()
+		player.bus = &"SFX"
 		add_child(player)
 		_players.append(player)
 

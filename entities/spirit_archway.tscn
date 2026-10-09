@@ -1,8 +1,8 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://entities/spirit_archway.gd" id="1_arch"]
-[ext_resource type="Texture2D" path="res://art/entities/archway.png" id="2_arch"]
-[ext_resource type="Texture2D" path="res://art/entities/archway_glow.png" id="3_glow"]
+[ext_resource type="Script" path="res://entities/archway_stone.gd" id="2_stone"]
+[ext_resource type="PackedScene" path="res://entities/rune.tscn" id="3_rune"]
 [ext_resource type="Shader" path="res://shaders/portal.gdshader" id="4_portal"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_portal"]
@@ -10,19 +10,54 @@ resource_local_to_scene = true
 shader = ExtResource("4_portal")
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_doorway"]
+resource_local_to_scene = true
 size = Vector2(60, 48)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall"]
+resource_local_to_scene = true
 size = Vector2(208, 4)
 
 [node name="SpiritArchway" type="Node2D"]
 script = ExtResource("1_arch")
 
-[node name="Stone" type="Sprite2D" parent="."]
+[node name="Stone" type="Node2D" parent="."]
 z_index = -5
-texture = ExtResource("2_arch")
-centered = false
-offset = Vector2(0, -128)
+script = ExtResource("2_stone")
+
+[node name="Runes" type="Node2D" parent="." groups=["full_color"]]
+z_index = -4
+
+[node name="Left1" parent="Runes" instance=ExtResource("3_rune")]
+position = Vector2(8, -88)
+glyph = 0
+
+[node name="Left2" parent="Runes" instance=ExtResource("3_rune")]
+position = Vector2(8, -56)
+glyph = 1
+
+[node name="Left3" parent="Runes" instance=ExtResource("3_rune")]
+position = Vector2(8, -24)
+glyph = 2
+
+[node name="Right1" parent="Runes" instance=ExtResource("3_rune")]
+position = Vector2(104, -88)
+glyph = 3
+
+[node name="Right2" parent="Runes" instance=ExtResource("3_rune")]
+position = Vector2(104, -56)
+glyph = 4
+
+[node name="Right3" parent="Runes" instance=ExtResource("3_rune")]
+position = Vector2(104, -24)
+glyph = 5
+
+[node name="Top1" parent="Runes" instance=ExtResource("3_rune")]
+position = Vector2(40, -120)
+glyph = 6
+
+[node name="Top2" parent="Runes" instance=ExtResource("3_rune")]
+position = Vector2(72, -120)
+glyph = 7
 
 [node name="Portal" type="ColorRect" parent="." groups=["full_color"]]
 z_index = -4
@@ -45,13 +80,7 @@ spread = 20.0
 gravity = Vector2(0, -10)
 initial_velocity_min = 3.0
 initial_velocity_max = 8.0
-color = Color(1, 0.7, 0.4, 1)
-
-[node name="Glow" type="Sprite2D" parent="." groups=["full_color"]]
-z_index = -4
-texture = ExtResource("3_glow")
-centered = false
-offset = Vector2(0, -128)
+color = Color(0.92, 0.64, 0.45, 1)
 
 [node name="Doorway" type="Area2D" parent="."]
 collision_layer = 0

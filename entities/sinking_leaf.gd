@@ -37,9 +37,13 @@ func _physics_process(delta: float) -> void:
 	else:
 		depth = maxf(depth - rise_speed * delta, 0.0)
 	position.y = _start.y + depth
-	# A gentle bob while floating untouched.
 	_bob += delta
-	sprite.position.y = roundf(sin(_bob * 2.0) * 0.6) if depth == 0.0 else 0.0
+
+
+# A gentle bob while floating untouched, drawn on whole game pixels (see Player._process).
+func _process(_delta: float) -> void:
+	var bob := roundf(sin(_bob * 2.0) * 0.6) if is_equal_approx(position.y, _start.y) else 0.0
+	sprite.position = Vector2(0, bob) + (global_position.round() - global_position)
 
 
 ## Go back to the start on the next physics update. Not straight away: a reset comes mid-frame

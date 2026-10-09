@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cdny3a87auyln"
-path="res://.godot/imported/archway.png-4dc6006f0db3c4c5f8db4d6df8030d37.ctex"
+uid="uid://bgel832l71ohp"
+path="res://.godot/imported/runes.png-1557f49dfaf3eff5b9366827435fbb27.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/entities/archway.png"
-dest_files=["res://.godot/imported/archway.png-4dc6006f0db3c4c5f8db4d6df8030d37.ctex"]
+source_file="res://art/entities/runes.png"
+dest_files=["res://.godot/imported/runes.png-1557f49dfaf3eff5b9366827435fbb27.ctex"]
 
 [params]
 

@@ -6,9 +6,16 @@ extends Node2D
 ##
 ## Nodes it expects: Terrain (TileMapLayer, usually a TerrainLayout) and Spawns (Marker2D
 ## children). Things that reset on death join the "room_reset" group and have reset_to_start().
-## Props, Decor, Leaves, Entities, and Terrain are drawn on their color layers (WorldColor);
+## Props, Decor, Leaves, Entities, Terrain, and Thorns are drawn on their color layers (WorldColor);
 ## anything in the "full_color" group keeps its color.
 
+## Where the room sits in the world, in tiles from the Hollow clearing's top-left corner. Rooms
+## connect where their edges touch (see docs/BUILDING_ROOMS.md); open rooms/world_view.tscn to
+## see them all in place.
+@export var world_origin := Vector2i.ZERO
+## The region the room belongs to: its backdrop tint and its name on the map.
+@export_enum("hollow", "ember_grove", "meadow", "canopy", "briar", "caverns", "falls", "heart")
+var region := "hollow"
 ## Spirit Rooms: one run, always restarting from the start, with checkpoints ignored and the
 ## run timed.
 @export var spirit_room := false
@@ -85,6 +92,10 @@ func _paint_color_layers() -> void:
 	WorldColor.paint(terrain, WorldColor.Layer.GROUND)
 	if terrain is TerrainLayout and (terrain as TerrainLayout).hazards:
 		(terrain as TerrainLayout).hazards.material = WorldColor.material(WorldColor.Layer.HAZARDS)
+	# Thorns objects (wherever they sit in the room).
+	for hazard in get_tree().get_nodes_in_group(&"hazards"):
+		if is_ancestor_of(hazard):
+			WorldColor.paint(hazard, WorldColor.Layer.HAZARDS)
 
 
 func _terrain_bounds() -> Rect2:

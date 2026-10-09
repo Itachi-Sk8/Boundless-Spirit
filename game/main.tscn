@@ -11,6 +11,9 @@
 [ext_resource type="PackedScene" path="res://ui/confirm_popup.tscn" id="10_confirm"]
 [ext_resource type="PackedScene" path="res://ui/debug_overlay.tscn" id="11_overlay"]
 [ext_resource type="PackedScene" path="res://ui/letterbox.tscn" id="12_letterbox"]
+[ext_resource type="Script" path="res://ui/speedrun_timer.gd" id="13_timer"]
+[ext_resource type="PackedScene" path="res://ui/pause_menu.tscn" id="14_pause"]
+[ext_resource type="PackedScene" path="res://ui/map_screen.tscn" id="15_map"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_main")
@@ -62,13 +65,35 @@ grow_vertical = 0
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.96, 0.88, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
-theme_override_font_sizes/font_size = 8
 horizontal_alignment = 1
 script = ExtResource("9_prompt")
 
 [node name="ConfirmPopup" parent="Hud" instance=ExtResource("10_confirm")]
 
+[node name="SpeedrunTimer" type="Label" parent="Hud" node_paths=PackedStringArray("game")]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -100.0
+offset_top = 4.0
+offset_right = -6.0
+offset_bottom = 30.0
+grow_horizontal = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.96, 0.88, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+horizontal_alignment = 2
+script = ExtResource("13_timer")
+game = NodePath("../..")
+
 [node name="DebugOverlay" parent="." node_paths=PackedStringArray("game") instance=ExtResource("11_overlay")]
 game = NodePath("..")
 
 [node name="Letterbox" parent="." instance=ExtResource("12_letterbox")]
+
+[node name="MapScreen" parent="." node_paths=PackedStringArray("game") instance=ExtResource("15_map")]
+game = NodePath("..")
+
+[node name="PauseMenu" parent="." node_paths=PackedStringArray("game", "map_screen") instance=ExtResource("14_pause")]
+game = NodePath("..")
+map_screen = NodePath("../MapScreen")

@@ -13,9 +13,12 @@
 [ext_resource type="PackedScene" path="res://entities/stone_block.tscn" id="11"]
 [ext_resource type="PackedScene" path="res://entities/checkpoint_stone.tscn" id="12"]
 [ext_resource type="PackedScene" path="res://entities/leaf_fall.tscn" id="13"]
+[ext_resource type="PackedScene" path="res://entities/thorns.tscn" id="thorns"]
 
 [node name="EmberClimb" type="Node2D"]
 script = ExtResource("1")
+world_origin = Vector2i(190, -17)
+region = "ember_grove"
 
 [node name="Props" type="Node2D" parent="."]
 z_index = -20
@@ -71,7 +74,7 @@ layout = "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 .............................%
 .......######................%
 .......######................%
-..............^^^^^^^^^......%
+.............................%
 ##############################
 ##############################
 ##############################
@@ -101,6 +104,12 @@ position = Vector2(-22, 470)
 texture = ExtResource("10")
 centered = false
 
+[node name="Hazards" type="Node2D" parent="."]
+
+[node name="Thorns1" parent="Hazards" instance=ExtResource("thorns")]
+position = Vector2(224, 496)
+length = 9
+
 [node name="Entities" type="Node2D" parent="."]
 z_index = 2
 
@@ -119,7 +128,6 @@ offset_top = 368.0
 mouse_filter = 2
 theme_override_colors/font_color = Color(0.92, 0.9, 0.84, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
-theme_override_font_sizes/font_size = 8
 text = "Stuck stone? Pull it out."
 
 [node name="Leaves" parent="." instance=ExtResource("13")]

@@ -2,7 +2,7 @@ class_name GameCamera
 extends Camera2D
 ## Follows the hero like Super Meat Boy's camera: smooth, kept inside the room, looking ahead
 ## in the direction of movement, with a vertical dead zone so jumps don't shake the view.
-## Crouching still peeks down.
+## Crouching still peeks down. shake() jolts it briefly (if screen shake is on in Settings).
 
 ## How fast the camera catches up, per second. Higher is snappier.
 @export var smoothing := 8.0
@@ -26,6 +26,9 @@ var _anchor_y := 0.0
 var _look := 0.0
 var _peek := 0.0
 var _position := Vector2.ZERO
+var _shake_strength := 0.0
+var _shake_left := 0.0
+var _shake_time := 0.0
 
 
 func _ready() -> void:
@@ -37,6 +40,16 @@ func setup(new_target: Player, room_bounds: Rect2) -> void:
 	target = new_target
 	bounds = room_bounds
 	snap_to_target()
+
+
+## Jolt the view by up to `strength` px for `time` seconds, fading out. Does nothing when
+## screen shake is off.
+func shake(strength: float, time: float) -> void:
+	if not Settings.screen_shake:
+		return
+	_shake_strength = strength
+	_shake_time = time
+	_shake_left = time
 
 
 ## Jump straight to the hero, e.g. after a respawn.
@@ -63,6 +76,12 @@ func _physics_process(delta: float) -> void:
 	var desired := Vector2(focus.x + _look, _anchor_y + _peek)
 	_position = _clamp_to_room(_position.lerp(desired, 1.0 - exp(-smoothing * delta)))
 	global_position = _position.round()
+	if _shake_left > 0.0:
+		_shake_left = maxf(_shake_left - delta, 0.0)
+		var amount := _shake_strength * _shake_left / _shake_time
+		offset = Vector2(randf_range(-amount, amount), randf_range(-amount, amount)).round()
+	else:
+		offset = Vector2.ZERO
 
 
 func _focus() -> Vector2:

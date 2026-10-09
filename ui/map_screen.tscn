@@ -1,0 +1,71 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://ui/map_screen.gd" id="1_map"]
+[ext_resource type="Texture2D" path="res://art/ui/panel_parchment.png" id="2_panel"]
+
+[node name="MapScreen" type="CanvasLayer"]
+layer = 30
+script = ExtResource("1_map")
+
+[node name="Shade" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.05, 0.06, 0.08, 0.88)
+
+[node name="Panel" type="NinePatchRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_panel")
+patch_margin_left = 6
+patch_margin_top = 6
+patch_margin_right = 6
+patch_margin_bottom = 6
+
+[node name="Paper" type="ColorRect" parent="."]
+offset_left = 16.0
+offset_top = 34.0
+offset_right = 464.0
+offset_bottom = 240.0
+mouse_filter = 2
+color = Color(0.16, 0.13, 0.11, 1)
+
+[node name="View" type="Control" parent="."]
+unique_name_in_owner = true
+clip_contents = true
+offset_left = 16.0
+offset_top = 34.0
+offset_right = 464.0
+offset_bottom = 240.0
+mouse_filter = 2
+
+[node name="Title" type="Label" parent="."]
+unique_name_in_owner = true
+offset_left = 16.0
+offset_top = 14.0
+offset_right = 464.0
+offset_bottom = 32.0
+theme_override_colors/font_color = Color(0.29, 0.18, 0.1, 1)
+theme_override_font_sizes/font_size = 12
+text = "The Hollow"
+horizontal_alignment = 1
+
+[node name="Hint" type="Label" parent="."]
+offset_left = 16.0
+offset_top = 243.0
+offset_right = 464.0
+offset_bottom = 258.0
+theme_override_colors/font_color = Color(0.42, 0.3, 0.2, 1)
+theme_override_font_sizes/font_size = 7
+text = "Tab / Esc  close      Move  pan      Diamond  Spirit Room (filled when cleared)      Dot  checkpoint"
+horizontal_alignment = 1

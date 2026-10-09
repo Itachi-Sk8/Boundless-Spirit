@@ -10,7 +10,8 @@ What it makes:
 - art/props/: trees, bushes, mushrooms, flowers, stones, the leaf platform.
 - art/backgrounds/: the sky and two seamless strips of distant forest for parallax.
 - art/ui/: the parchment and wood panels and the clock, skull, and trophy icons.
-- art/entities/: the Spirit Room archway, checkpoint stone, and shortcut gate.
+- art/entities/: rune glyphs (for the Spirit Room archway), checkpoint stone, gate, boulder.
+- art/creatures/ and art/objects/: see tools/art_objects.py.
 """
 import os
 import random
@@ -18,6 +19,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from pngio import blank, crop, flip_x, load, paste, recolor, save, trim  # noqa: E402
+from art_objects import build_creatures, build_objects  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FOREST = os.path.join(ROOT, "gamemaker-legacy", "Assets", "Legacy-Fantasy - High Forest 2.3")
@@ -26,15 +28,23 @@ TILE = 16
 # Edge bits for terrain tiles: set when that neighbor is empty.
 UP, DOWN, LEFT, RIGHT = 1, 2, 4, 8
 
-# The pack's terrain blocks are 5×5 9-slices whose grass (or rock) surface sits 8 px into the
-# first row. Re-cut 8 px lower so the surface lands on the 16 px grid: these are the source
-# rows (y) of the top, middle, and bottom slices, and the x of the block's left column.
-GRASS = {"x": 0, "top": 8, "mid": 40, "mid_alt": 48, "bottom": 56}
-ROCK = {"x": 0, "top": 88, "mid": 120, "mid_alt": 104, "bottom": 136}
+# The pack's terrain blocks are 5×5 9-slices. The tiles are cut so the ground the hero stands
+# on lands on the 16 px grid: for grass that's the dark soil under the grass (16 px into the
+# block), with the grass blades above it drawn as a separate "grass top" tile in the cell
+# above, behind the hero; for rock it's the top of the boulders (3 px into the cut). These are
+# the source rows (y) of the top, middle, and bottom slices, and the x of the left column.
+GRASS = {"x": 0, "top": 16, "mid": 40, "mid_alt": 48, "bottom": 56}
+ROCK = {"x": 0, "top": 91, "mid": 120, "mid_alt": 104, "bottom": 136}
+# The grass blades above the soil: these pack rows go at the bottom of a grass top tile.
+GRASS_BLADES = (8, 16)
 
 # Atlas layout of forest.png (column, row).
 ATLAS_COLUMNS = 16
 GRASS_ROW, ROCK_ROW, VARIANT_ROW, MISC_ROW = 0, 1, 2, 3
+# Grass tops (blades over the soil, drawn in the empty cell above): by edge mask for the grass
+# row, and in the same column as the top-surface variants for those.
+GRASS_TOP_ROW, GRASS_TOP_VARIANT_ROW = 4, 5
+ATLAS_ROWS = 6
 PLANK_LEFT, PLANK_MID, PLANK_RIGHT, PLANK_SINGLE = (0, MISC_ROW), (1, MISC_ROW), (2, MISC_ROW), (3, MISC_ROW)
 THORNS = {"up": (4, MISC_ROW), "down": (5, MISC_ROW), "right": (6, MISC_ROW), "left": (7, MISC_ROW)}
 
@@ -65,6 +75,20 @@ def terrain_tile(sheet, block, mask, mid_col=16, mid_row=None):
             sx, sy = cols[col] + qx * 8, rows[row] + qy * 8
             for y in range(8):
                 tile[qy * 8 + y][qx * 8:qx * 8 + 8] = sheet[sy + y][sx:sx + 8]
+    return tile
+
+
+def grass_top(sheet, mask, mid_col=16):
+    """The grass blades over a top-edge grass tile, at the bottom of a 16×16 tile meant for the
+    empty cell above it. Its sides follow the tile's left and right edges."""
+    cols = {"L": GRASS["x"], "M": GRASS["x"] + mid_col, "R": GRASS["x"] + 64}
+    y0, y1 = GRASS_BLADES
+    tile = blank(TILE, TILE)
+    for qx in (0, 1):
+        col = ("L" if mask & LEFT else "M") if qx == 0 else ("R" if mask & RIGHT else "M")
+        sx = cols[col] + qx * 8
+        for y in range(y0, y1):
+            tile[TILE - (y1 - y)][qx * 8:qx * 8 + 8] = sheet[y][sx:sx + 8]
     return tile
 
 
@@ -100,7 +124,7 @@ def rotate_tile(tile, direction):
 
 def build_tileset():
     sheet = forest("Assets", "Tiles.png")
-    atlas = blank(ATLAS_COLUMNS * TILE, 4 * TILE)
+    atlas = blank(ATLAS_COLUMNS * TILE, ATLAS_ROWS * TILE)
 
     def put(tile, col, row):
         paste(atlas, tile, col * TILE, row * TILE)
@@ -108,6 +132,8 @@ def build_tileset():
     for mask in range(16):
         put(terrain_tile(sheet, GRASS, mask), mask, GRASS_ROW)
         put(terrain_tile(sheet, ROCK, mask), mask, ROCK_ROW)
+        if mask & UP:
+            put(grass_top(sheet, mask), mask, GRASS_TOP_ROW)
     # Variants for the two most common tiles (solid inside, and top surface), so large areas
     # don't repeat one tile. Godot picks among same-shaped tiles by probability.
     variants = []
@@ -116,6 +142,8 @@ def build_tileset():
         for mask in (0, UP):
             for mid_col, mid_row in ((32, block["mid_alt"]), (48, block["mid"])):
                 put(terrain_tile(sheet, block, mask, mid_col, mid_row), col, VARIANT_ROW)
+                if block is GRASS and mask == UP:
+                    put(grass_top(sheet, mask, mid_col), col, GRASS_TOP_VARIANT_ROW)
                 variants.append((col, terrain, mask))
                 col += 1
     # Planks: the pack's log bridge top, cut into ends and middle.
@@ -157,6 +185,12 @@ def write_tileset_resource(variants):
         tile(mask, ROCK_ROW, *terrain_props(1, mask))
     for col, terrain, mask in variants:
         tile(col, VARIANT_ROW, *terrain_props(terrain, mask), "probability = 0.35")
+        if terrain == 0 and mask == UP:
+            tile(col, GRASS_TOP_VARIANT_ROW)
+    # Grass tops: art only (TerrainLayout puts them above top-edge grass).
+    for mask in range(16):
+        if mask & UP:
+            tile(mask, GRASS_TOP_ROW)
     plank = ["physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, -3, -8, -3)",
              "physics_layer_0/polygon_0/one_way = true"]
     for cell in (PLANK_LEFT, PLANK_MID, PLANK_RIGHT, PLANK_SINGLE):
@@ -172,7 +206,8 @@ def write_tileset_resource(variants):
         tile(*cell, f"physics_layer_1/polygon_0/points = PackedVector2Array({hurt[direction]})")
 
     text = "\n".join([
-        '[gd_resource type="TileSet" format=3]',
+        # A fixed uid, so scenes saved in the editor keep finding the tileset after a rebuild.
+        '[gd_resource type="TileSet" format=3 uid="uid://caqmra0ad1sno"]',
         "",
         '[ext_resource type="Texture2D" path="res://art/tilesets/forest.png" id="1_forest"]',
         "",
@@ -350,43 +385,16 @@ def glow_runes(glyphs, color):
 
 
 def build_entities():
-    tiles = forest("Assets", "Tiles.png")
-    # Spirit Room archway: rock pillars and lintel built from the rock terrain, with carved runes.
-    layout = ["########", "########", "##....##", "##....##", "##....##", "##....##", "##....##", "##....##"]
-    h, w = len(layout), len(layout[0])
-    arch = blank(w * TILE, h * TILE)
-
-    def solid(x, y):
-        return 0 <= y < h and 0 <= x < w and layout[y][x] == "#"
-
-    for y in range(h):
-        for x in range(w):
-            if solid(x, y):
-                mask = ((not solid(x, y - 1)) * UP | (not solid(x, y + 1)) * DOWN
-                        | (not solid(x - 1, y)) * LEFT | (not solid(x + 1, y)) * RIGHT)
-                paste(arch, terrain_tile(tiles, ROCK, mask), x * TILE, y * TILE)
-    # Runes carved into the stone: dark grooves with a lit lower-right edge, so they read as cut
-    # into the rock. The glow fills only the grooves, so it looks like light inside the carving.
-    rune_spots = [(8, 40), (8, 72), (8, 104), (104, 40), (104, 72), (104, 104), (40, 8), (72, 8)]
-    grooves = blank(w * TILE, h * TILE)
-    for i, (x, y) in enumerate(rune_spots):
-        paste(grooves, rune(i % 8, False), x, y)
-
-    def in_groove(x, y):
-        return 0 <= y < len(grooves) and 0 <= x < len(grooves[0]) and grooves[y][x][3] > 0 and arch[y][x][3] > 0
-
-    carved = [row[:] for row in arch]
-    glow = blank(w * TILE, h * TILE)
-    for y in range(len(arch)):
-        for x in range(len(arch[0])):
-            stone = arch[y][x]
-            if in_groove(x, y):
-                carved[y][x] = tuple(int(c * 0.35) for c in stone[:3]) + (255,)
-                glow[y][x] = (236, 128, 52, 235)
-            elif stone[3] and in_groove(x - 1, y - 1):
-                carved[y][x] = tuple(min(255, int(c * 1.35) + 12) for c in stone[:3]) + (255,)
-    save(out_path("entities", "archway.png"), carved)
-    save(out_path("entities", "archway_glow.png"), glow)
+    # Rune glyphs for carved, glowing lettering (the Spirit Room archway): every glyph of the
+    # pack's rune set in white on a 16×16 grid, 8 per row, so the game can color each one.
+    rocks = forest("Assets", "Props-Rocks.png")
+    runes = blank(8 * TILE, 3 * TILE)
+    for row in range(3):
+        for col in range(8):
+            x0, y0 = 144 + col * TILE, 256 + row * TILE
+            glyph = recolor(crop(rocks, x0, y0, x0 + TILE, y0 + TILE), lambda p: (255, 255, 255, p[3]))
+            paste(runes, glyph, col * TILE, row * TILE)
+    save(out_path("entities", "runes.png"), runes)
     # Checkpoint stone: the round standing stone with a rune that lights when touched.
     rocks = forest("Assets", "Props-Rocks.png")
     stone = trim(crop(rocks, 112, 192, 156, 256))
@@ -426,4 +434,6 @@ if __name__ == "__main__":
     build_backgrounds()
     build_ui()
     build_entities()
+    build_creatures()
+    build_objects()
     print("art built")

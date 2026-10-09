@@ -122,5 +122,8 @@ extends Resource
 @export var crouch_size := Vector2(10, 18)
 ## Sliding box. Under one tile so a slide fits 1-tile gaps.
 @export var slide_size := Vector2(10, 12)
-## The hazard box is the collision box shrunk by this much on every side, in px.
+## The hazard box is the collision box shrunk by this much on the sides and at the feet, in px.
 @export var hurtbox_inset := 2.0
+## Standing (and in the air), the drawn head pokes this far above the collision box, in px.
+## The hazard box reaches up to the top of the head, so a head touching ceiling thorns dies.
+@export var hurtbox_head_reach := 4.0

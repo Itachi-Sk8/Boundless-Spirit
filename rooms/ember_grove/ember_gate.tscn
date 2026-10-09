@@ -1,41 +1,59 @@
-[gd_scene format=3]
+[gd_scene format=4 uid="uid://c1ppuyhy2wsrh"]
 
-[ext_resource type="Script" path="res://rooms/room.gd" id="1"]
-[ext_resource type="Script" path="res://rooms/terrain_layout.gd" id="2"]
-[ext_resource type="TileSet" path="res://art/tilesets/forest.tres" id="3"]
-[ext_resource type="Texture2D" path="res://art/props/tree_red_big.png" id="4"]
-[ext_resource type="Texture2D" path="res://art/props/tree_golden_big.png" id="5"]
-[ext_resource type="Texture2D" path="res://art/props/tree_red_medium.png" id="6"]
-[ext_resource type="Texture2D" path="res://art/props/stone_tall.png" id="7"]
-[ext_resource type="Texture2D" path="res://art/props/bush_1.png" id="8"]
-[ext_resource type="Texture2D" path="res://art/props/mushroom_big_b.png" id="9"]
-[ext_resource type="Texture2D" path="res://art/props/fern.png" id="10"]
+[ext_resource type="Script" uid="uid://b74dagl6005we" path="res://rooms/room.gd" id="1"]
+[ext_resource type="Script" uid="uid://cd15ivjl5abiu" path="res://rooms/terrain_layout.gd" id="2"]
+[ext_resource type="TileSet" uid="uid://caqmra0ad1sno" path="res://art/tilesets/forest.tres" id="3"]
+[ext_resource type="Texture2D" uid="uid://dvrph7ty8kv7f" path="res://art/props/tree_red_big.png" id="4"]
+[ext_resource type="Texture2D" uid="uid://bf7oi86hhma6g" path="res://art/props/tree_golden_big.png" id="5"]
+[ext_resource type="Texture2D" uid="uid://btikyax7642nn" path="res://art/props/tree_red_medium.png" id="6"]
+[ext_resource type="Texture2D" uid="uid://bj60c80je75gr" path="res://art/props/stone_tall.png" id="7"]
+[ext_resource type="Texture2D" uid="uid://0kapepuui7e8" path="res://art/props/bush_1.png" id="8"]
+[ext_resource type="Texture2D" uid="uid://dpr7texxi8vkx" path="res://art/props/mushroom_big_b.png" id="9"]
+[ext_resource type="Texture2D" uid="uid://bf1jexygc5v84" path="res://art/props/fern.png" id="10"]
 [ext_resource type="PackedScene" path="res://entities/spirit_archway.tscn" id="11"]
 [ext_resource type="PackedScene" path="res://entities/leaf_fall.tscn" id="12"]
+[ext_resource type="Shader" uid="uid://c5s8lrylfipoa" path="res://shaders/portal.gdshader" id="12_yj8i1"]
 
-[node name="EmberGate" type="Node2D"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_yj8i1"]
+resource_local_to_scene = true
+shader = ExtResource("12_yj8i1")
+shader_parameter/glow_color = Color(0.89, 0.52, 0.28, 1)
+shader_parameter/speed = 1.4
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_lfcm4"]
+resource_local_to_scene = true
+size = Vector2(60, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_yuiu6"]
+resource_local_to_scene = true
+size = Vector2(208, 4)
+
+[node name="EmberGate" type="Node2D" unique_id=958931683]
 script = ExtResource("1")
+world_origin = Vector2i(160, -17)
+region = "ember_grove"
 
-[node name="Props" type="Node2D" parent="."]
+[node name="Props" type="Node2D" parent="." unique_id=67446140]
 z_index = -20
 
-[node name="TreeRedBig0" type="Sprite2D" parent="Props"]
+[node name="TreeRedBig0" type="Sprite2D" parent="Props" unique_id=2030737355]
 position = Vector2(131, -154)
 texture = ExtResource("4")
 centered = false
 
-[node name="TreeGoldenBig1" type="Sprite2D" parent="Props"]
+[node name="TreeGoldenBig1" type="Sprite2D" parent="Props" unique_id=391742107]
 position = Vector2(259, -154)
 texture = ExtResource("5")
 centered = false
 flip_h = true
 
-[node name="TreeRedMedium2" type="Sprite2D" parent="Props"]
+[node name="TreeRedMedium2" type="Sprite2D" parent="Props" unique_id=969663758]
 position = Vector2(370, -99)
 texture = ExtResource("6")
 centered = false
 
-[node name="Terrain" type="TileMapLayer" parent="."]
+[node name="Terrain" type="TileMapLayer" parent="." unique_id=426964497]
+tile_map_data = PackedByteArray("AAAAAA0AAAADAAIAAAABAA0AAAABAAAAAAACAA0AAAABAAAAAAADAA0AAAABAAAAAAAEAA0AAAADAAIAAAAFAA0AAAABAAAAAAAGAA0AAAABAAAAAAAHAA0AAAABAAAAAAAIAA0AAAADAAIAAAAJAA0AAAABAAAAAAAKAA0AAAABAAAAAAALAA0AAAABAAAAAAAMAA0AAAABAAAAAAANAA0AAAABAAAAAAAOAA0AAAADAAIAAAAPAA0AAAABAAAAAAAQAA0AAAABAAAAAAARAA0AAAABAAAAAAASAA0AAAADAAIAAAATAA0AAAACAAIAAAAUAA0AAAADAAIAAAAVAA0AAAABAAAAAAAWAA0AAAADAAIAAAAXAA0AAAABAAAAAAAYAA0AAAABAAAAAAAZAA0AAAACAAIAAAAaAA0AAAADAAIAAAAbAA0AAAABAAAAAAAcAA0AAAABAAAAAAAdAA0AAAABAAAAAAAAAA4AAAAAAAAAAAABAA4AAAABAAIAAAACAA4AAAAAAAIAAAADAA4AAAABAAIAAAAEAA4AAAAAAAAAAAAFAA4AAAABAAIAAAAGAA4AAAAAAAAAAAAHAA4AAAABAAIAAAAIAA4AAAAAAAIAAAAJAA4AAAAAAAAAAAAKAA4AAAAAAAAAAAALAA4AAAAAAAAAAAAMAA4AAAAAAAAAAAANAA4AAAABAAIAAAAOAA4AAAAAAAAAAAAPAA4AAAAAAAAAAAAQAA4AAAAAAAIAAAARAA4AAAABAAIAAAASAA4AAAAAAAAAAAATAA4AAAABAAIAAAAUAA4AAAAAAAAAAAAVAA4AAAABAAIAAAAWAA4AAAAAAAAAAAAXAA4AAAAAAAAAAAAYAA4AAAAAAAAAAAAZAA4AAAAAAAAAAAAaAA4AAAAAAAAAAAAbAA4AAAABAAIAAAAcAA4AAAAAAAAAAAAdAA4AAAABAAIAAAAAAA8AAAAAAAAAAAABAA8AAAAAAAAAAAACAA8AAAABAAIAAAADAA8AAAAAAAAAAAAEAA8AAAABAAIAAAAFAA8AAAAAAAIAAAAGAA8AAAAAAAAAAAAHAA8AAAAAAAAAAAAIAA8AAAABAAIAAAAJAA8AAAAAAAIAAAAKAA8AAAAAAAAAAAALAA8AAAAAAAAAAAAMAA8AAAABAAIAAAANAA8AAAAAAAAAAAAOAA8AAAAAAAAAAAAPAA8AAAAAAAIAAAAQAA8AAAABAAIAAAARAA8AAAAAAAIAAAASAA8AAAABAAIAAAATAA8AAAAAAAAAAAAUAA8AAAAAAAAAAAAVAA8AAAAAAAAAAAAWAA8AAAAAAAAAAAAXAA8AAAAAAAIAAAAYAA8AAAABAAIAAAAZAA8AAAAAAAAAAAAaAA8AAAAAAAAAAAAbAA8AAAAAAAIAAAAcAA8AAAAAAAAAAAAdAA8AAAAAAAAAAAAAABAAAAAAAAIAAAABABAAAAAAAAAAAAACABAAAAAAAAAAAAADABAAAAABAAIAAAAEABAAAAAAAAAAAAAFABAAAAAAAAAAAAAGABAAAAAAAAIAAAAHABAAAAAAAAAAAAAIABAAAAAAAAAAAAAJABAAAAABAAIAAAAKABAAAAAAAAIAAAALABAAAAABAAIAAAAMABAAAAAAAAAAAAANABAAAAABAAIAAAAOABAAAAAAAAAAAAAPABAAAAABAAIAAAAQABAAAAAAAAIAAAARABAAAAABAAIAAAASABAAAAAAAAIAAAATABAAAAAAAAAAAAAUABAAAAAAAAIAAAAVABAAAAAAAAAAAAAWABAAAAAAAAIAAAAXABAAAAAAAAAAAAAYABAAAAAAAAIAAAAZABAAAAAAAAAAAAAaABAAAAAAAAAAAAAbABAAAAAAAAAAAAAcABAAAAAAAAAAAAAdABAAAAAAAAAAAAA=")
 tile_set = ExtResource("3")
 script = ExtResource("2")
 layout = "..............................
@@ -56,45 +74,64 @@ layout = "..............................
 ##############################
 ##############################"
 
-[node name="Decor" type="Node2D" parent="."]
+[node name="Decor" type="Node2D" parent="." unique_id=1039588074]
 z_index = 1
 
-[node name="StoneTall0" type="Sprite2D" parent="Decor"]
+[node name="StoneTall0" type="Sprite2D" parent="Decor" unique_id=888325185]
 position = Vector2(131, 119)
 texture = ExtResource("7")
 centered = false
 
-[node name="Bush11" type="Sprite2D" parent="Decor"]
+[node name="Bush11" type="Sprite2D" parent="Decor" unique_id=1109688545]
 position = Vector2(186, 166)
 texture = ExtResource("8")
 centered = false
 
-[node name="MushroomBigB2" type="Sprite2D" parent="Decor"]
+[node name="MushroomBigB2" type="Sprite2D" parent="Decor" unique_id=743709157]
 position = Vector2(346, 177)
 texture = ExtResource("9")
 centered = false
 
-[node name="Fern3" type="Sprite2D" parent="Decor"]
+[node name="Fern3" type="Sprite2D" parent="Decor" unique_id=799460898]
 position = Vector2(200, 184)
 texture = ExtResource("10")
 centered = false
 
-[node name="Entities" type="Node2D" parent="."]
+[node name="Entities" type="Node2D" parent="." unique_id=50683828]
 z_index = 2
 
-[node name="SpiritArchway1" parent="Entities" instance=ExtResource("11")]
-position = Vector2(0, 208)
-color = 0
+[node name="SpiritArchway1" parent="Entities" unique_id=1440738034 instance=ExtResource("11")]
+position = Vector2(2, 208)
 
-[node name="Leaves" parent="." instance=ExtResource("12")]
+[node name="Top1" parent="Entities/SpiritArchway1/Runes" index="6"]
+position = Vector2(40, -119)
+
+[node name="Top2" parent="Entities/SpiritArchway1/Runes" index="7"]
+position = Vector2(72, -119)
+
+[node name="Portal" parent="Entities/SpiritArchway1" index="2"]
+material = SubResource("ShaderMaterial_yj8i1")
+offset_left = 21.0
+offset_top = -105.0
+offset_right = 110.0
+
+[node name="Shape" parent="Entities/SpiritArchway1/Doorway" index="0"]
+shape = SubResource("RectangleShape2D_lfcm4")
+
+[node name="Shape" parent="Entities/SpiritArchway1/BackWall" index="0"]
+shape = SubResource("RectangleShape2D_yuiu6")
+
+[node name="Leaves" parent="." unique_id=813531375 instance=ExtResource("12")]
 position = Vector2(240, -8)
 amount = 22
 emission_rect_extents = Vector2(240, 4)
 
-[node name="Spawns" type="Node2D" parent="."]
+[node name="Spawns" type="Node2D" parent="." unique_id=1500141503]
 
-[node name="East" type="Marker2D" parent="Spawns"]
+[node name="East" type="Marker2D" parent="Spawns" unique_id=1613992285]
 position = Vector2(440, 208)
 
-[node name="West" type="Marker2D" parent="Spawns"]
+[node name="West" type="Marker2D" parent="Spawns" unique_id=2010422794]
 position = Vector2(168, 208)
+
+[editable path="Entities/SpiritArchway1"]

@@ -91,6 +91,18 @@ def build():
                               tone(2093, 2093, 0.7, "sine", volume=0.08, vibrato=0.01),
                               offsets=[0, 0.09, 0.18, 0.27, 0.27]))
     write("ui_confirm", tone(700, 1050, 0.08, "square", 0.25, 0.25))
+    # Hazards, objects, and creatures.
+    write("bounce", tone(180, 720, 0.22, "square", 0.3, 0.32, curve=0.45, vibrato=0.05))
+    write("plate", mix(tone(240, 200, 0.06, "square", 0.5, 0.25), noise(0.05, 0.2, 0.7, 10)))
+    write("door", mix(tone(90, 60, 0.35, "saw", volume=0.3), noise(0.3, 0.2, 0.85, 11, 1.2)))
+    write("break", mix(noise(0.4, 0.55, 0.55, 12, 1.0), tone(160, 50, 0.25, "square", 0.5, 0.25)))
+    write("crack", noise(0.12, 0.35, 0.2, 13, 2.5))
+    write("shatter", mix(noise(0.25, 0.5, 0.45, 14, 1.4), tone(300, 80, 0.15, "square", 0.5, 0.15)))
+    write("buzz", tone(180, 220, 0.35, "saw", volume=0.22, vibrato=0.08))
+    write("squash", mix(tone(400, 90, 0.2, "square", 0.4, 0.3), noise(0.1, 0.25, 0.5, 15)))
+    write("snort", mix(noise(0.18, 0.4, 0.8, 16, 1.0), tone(120, 90, 0.15, "saw", volume=0.2)))
+    write("thud", mix(noise(0.12, 0.55, 0.9, 17, 2.0), tone(90, 40, 0.15, "sine", volume=0.4)))
+    write("hide", tone(500, 250, 0.1, "triangle", volume=0.3))
     print("sfx built")
 
 

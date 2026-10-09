@@ -100,7 +100,6 @@ func _build() -> void:
 		var label := Label.new()
 		label.text = entry[1]
 		label.position = Vector2(entry[0]) * tile_size
-		label.add_theme_font_size_override(&"font_size", 8)
 		label.add_theme_color_override(&"font_color", SIGN_COLOR)
 		add_child(label)
 

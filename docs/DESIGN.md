@@ -222,6 +222,7 @@ The game is hard on purpose and ships with no assist mode. Fairness comes from i
 - **Spirit Rooms:** hard. The one-run rule is where the real challenge lives.
 - **Bonus Spirit Rooms:** very hard, for players who want more.
 - **A sawtooth shape:** each region starts gentler than the Spirit Room before it, then builds to its own.
+- **A clear climb overall:** each region's hardest rooms, and each Spirit Room, ask noticeably more than the last. The first slice playtest found the Hollow and Ember Grove easy, which is right for the opening, so the climb starts from there.
 
 **Fairness rules**
 
@@ -245,7 +246,7 @@ The screen stays clean: a scrolling camera, no HUD during play, and the hero's b
 
 **Camera**
 
-- The game draws at 480×270 (the prototype's view size) and scales up by whole numbers, 4× on a 1080p screen, so pixels stay crisp.
+- The game's art is laid out at 480×270 (the prototype's view size) and scales up by whole numbers, 4× on a 1440p screen and 3× on 1080p, so pixels stay crisp. Text is drawn at the screen's full resolution in a smooth font, so it stays sharp and easy to read (decided after the first slice playtest).
 - Rooms scroll like Super Meat Boy's. The camera follows smoothly, stays inside the room, and looks ahead in the direction of movement.
 - A small vertical dead zone keeps jumps from shaking the view.
 - Moving between rooms uses the prototype's letterbox slide transition.
@@ -372,6 +373,7 @@ Every ability in this doc already has animations in the repo, so the move to God
 
 - **Asset Packs 1–5:** the repo doesn't record where these came from. Since the hero is built on them, this is the most important one to track down.
 - **Legacy-Fantasy High Forest:** a free pack by Anokolisa on itch.io. The author says it can be used in commercial games, but the full terms are a separate document that may require a credit. [source](https://anokolisa.itch.io/sidescroller-pixelart-sprites-asset-pack-forest-16x16)
+- **Nunito font** (all game text): by the Nunito Project Authors, under the SIL Open Font License 1.1, which allows commercial use. Its license must ship with the game (`art/fonts/OFL.txt`) and it can't be sold on its own. Credit it in the credits. [source](https://github.com/googlefonts/nunito)
 
 ## Scope and build order
 
@@ -394,7 +396,7 @@ A 2-hour main path works out to roughly 75 rooms. That's a lot for a hobby proje
 4. **Content tools.** Room template, world color layers, map screen, the full hazard and creature set, pause and settings menus. Done when you can build a new room from the template without Claude.
 5. **Regions 2–6.** One region at a time, each with its rooms, Spirit Room, color unlock, and music, playtested before the next.
 6. **The Heart and endings.** The final climb, the ending, the alternate ending, and credits.
-7. **Optional content and polish.** Wisps, bonus Spirit Rooms, a sound pass, particles and screen shake, control remapping.
+7. **Optional content and polish.** Wisps, bonus Spirit Rooms, a sound pass, particles and screen shake, control remapping, and a longer death: about double today's 0.35 s death-to-respawn, so dying costs more (@Ben, Oct 9, 2026). That relaxes the "under 0.5 s" rule in Death, checkpoints, and saving; tune it by feel.
 8. **Release.** A friends build on itch.io first. Steam charges a $100 fee per game, paid back once the game earns $1,000 there. [source](https://partner.steamgames.com/doc/gettingstarted/appfee)
 
 ### The vertical slice as built (v1.0.5)
@@ -416,9 +418,57 @@ crossed with the new dash → **Sunlit Meadow**'s edge and the end message.
 - **Color comes back in layers.** Each layer of the world (backdrop, trees, decoration, ground,
   hazards) draws grey with its own color strength, all set from the colors collected.
 - **Placeholder sound:** retro effects generated in code (no licenses); no music yet.
-- **For the friend playtest:** the automated playthrough clears the Spirit Room in 10.5 s
-  without a death, so a human clean run may land well under the 45–90 s target. Watch how
-  long it takes and how many attempts; it may need a fifth section or a second screen of height.
+- **Playtest result (Oct 9, 2026, @Ben, v1.0.5):** happy with everything; the whole slice takes
+  4–6 minutes and plays easy. The plan budgeted about 25 minutes for this much of the game
+  (8 for the Hollow, 12 for a region, 5 for a Spirit Room), so either rooms need more in them or
+  the room count behind the 2-hour estimate goes up. Since @Ben knows the rooms, a fresh player
+  will be slower, but not 5 times slower.
+- **Difficulty must climb with each area.** This first stretch is the easy end; every later
+  region and Spirit Room should ask clearly more than the one before (see Difficulty curve).
+
+### Content tools as built (v1.0.9)
+
+Built so @Ben can make rooms alone; the how-to is `docs/BUILDING_ROOMS.md`. Choices made along
+the way, open to change after @Ben tries them:
+
+- **Rooms place themselves.** A room's position (World Origin, in tiles) and region are set on
+  the room itself, and any scene saved under `rooms/` joins the world. An editor-only World View
+  shows every room in place and flags overlaps in red.
+- **Map** (Tab, or from the pause menu): only rooms already visited, drawn from their actual
+  ground in their region's color; Spirit Rooms are diamonds (filled once cleared) and checkpoint
+  stones are dots. Pans when the world outgrows the screen.
+- **Pause menu** (Esc): play time, deaths, and colors; Resume, Map, Settings, Leave Spirit Room
+  (back outside its archway), Quit (saves first).
+- **Settings:** music and sound volume, fullscreen, window size, screen shake (a small jolt on
+  death, wall smashes, and boar impacts), speedrun timer. Control remapping waits for the polish
+  milestone, as planned.
+- **Hazards and objects:**
+  - Bounce flowers refill the dash and double jump, like Celeste's springs.
+  - A dash shatters a breakable wall and carries on through it. A wall with a saved flag stays
+    broken; one without comes back when the room resets.
+  - Sideways wind carries the hero like a moving walkway: walking against it is slow but
+    possible. Updrafts lift. Gusts can blow in a fixed rhythm.
+  - Waterfalls press down and cut held jumps short.
+  - Stalactites and lodged logs shake for 0.35 s before falling, and grow back after 2.5 s.
+  - Rolling logs come out on a fixed interval.
+  - Pressure plates hold a door open while pressed, or stay down for good with `latch`.
+- **Creatures:**
+  - Bees dive straight down, so a dive is easy to read and dodge.
+  - Boars charge until something stops them: a wall dazes them, a breakable wall shatters, and
+    thorns, water, or a pit kill them.
+  - Snails crawl over every surface. A shell hidden on a wall or ceiling drops to the floor,
+    where it works as a push block (and presses plates).
+- **Placeholder art:** creatures come from the forest pack. Logs, stalactites, flowers, plates,
+  vines, water, waterfalls, barriers, and branches are simple pixel art drawn by
+  `tools/art_objects.py`, to replace in the polish pass. New sounds are generated retro effects
+  like the rest.
+- **Ground and hitboxes** (after @Ben's Spirit Room work, v1.0.11):
+  - The hero's feet meet the dark soil, with the grass blades drawn behind it. Rock tops sit
+    flush too.
+  - The head counts for hazards: the hazard box reaches the top of the drawn head, so ceiling
+    thorns kill on contact. It stays 2 px smaller than the art at the sides and feet.
+- **Gallery** (F3, then F10): every hazard, object, and creature in one room, used by the
+  automated hazard tests too.
 
 ## Open questions
 

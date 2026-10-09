@@ -1,6 +1,6 @@
 extends Node
 ## Everything the game remembers: colors, where the hero is, deaths, play time, opened
-## shortcuts, and Spirit Room best times. Saved as JSON to user://save_<slot>.json.
+## shortcuts, rooms visited (for the map), and Spirit Room best times. Saved as JSON to user://save_<slot>.json.
 
 signal colors_changed
 signal deaths_changed
@@ -26,6 +26,8 @@ var flags := {}
 var best_times := {}
 ## Deaths it took to clear each Spirit Room, by room id. Recorded for later; nothing shows it yet.
 var clear_deaths := {}
+## Rooms the hero has been in, by id (the map shows only these).
+var visited := {}
 ## Set when a room scene is run on its own (F6) so the game starts in it.
 var pending_room_scene := ""
 
@@ -65,6 +67,14 @@ func set_all_colors(unlocked: bool) -> void:
 func add_death() -> void:
 	deaths += 1
 	deaths_changed.emit()
+
+
+func has_visited(room: StringName) -> bool:
+	return visited.has(String(room))
+
+
+func mark_visited(room: StringName) -> void:
+	visited[String(room)] = true
 
 
 func has_flag(flag: StringName) -> bool:
@@ -107,6 +117,7 @@ func new_game(for_slot := slot) -> void:
 	deaths = 0
 	play_time = 0.0
 	flags = {}
+	visited = {}
 	best_times = {}
 	clear_deaths = {}
 	_colors = [false, false, false, false, false, false]
@@ -115,7 +126,7 @@ func new_game(for_slot := slot) -> void:
 
 
 func save_game() -> void:
-	if not WorldMap.ROOMS.has(room_id):
+	if not WorldMap.has_room(room_id):
 		return # Test rooms aren't part of the world.
 	var data := {
 		"version": SAVE_VERSION,
@@ -125,6 +136,7 @@ func save_game() -> void:
 		"deaths": deaths,
 		"play_time": play_time,
 		"flags": flags,
+		"visited": visited,
 		"best_times": best_times,
 		"clear_deaths": clear_deaths,
 	}
@@ -139,7 +151,7 @@ func load_game(for_slot := slot) -> bool:
 	if not FileAccess.file_exists(save_path()):
 		return false
 	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(save_path()))
-	if typeof(data) != TYPE_DICTIONARY or not WorldMap.ROOMS.has(StringName(data.get("room", ""))):
+	if typeof(data) != TYPE_DICTIONARY or not WorldMap.has_room(StringName(data.get("room", ""))):
 		return false
 	room_id = StringName(data["room"])
 	var spot: Array = data.get("respawn", [0, 0])
@@ -150,6 +162,7 @@ func load_game(for_slot := slot) -> bool:
 	deaths = int(data.get("deaths", 0))
 	play_time = float(data.get("play_time", 0.0))
 	flags = data.get("flags", {})
+	visited = data.get("visited", {})
 	best_times = data.get("best_times", {})
 	clear_deaths = data.get("clear_deaths", {})
 	colors_changed.emit()

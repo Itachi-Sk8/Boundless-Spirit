@@ -33,7 +33,9 @@ func _run() -> void:
 	await test_crumble_platform()
 	await test_sinking_leaf()
 	await test_world_color_cascade()
+	await test_thorns()
 	await test_spirit_door()
+	await test_menus()
 	await test_save_round_trip()
 	GameState.delete_save()
 	await frames(5)
@@ -42,22 +44,26 @@ func _run() -> void:
 
 
 func test_world_map() -> void:
-	for id: StringName in WorldMap.ROOMS:
-		var info: Dictionary = WorldMap.ROOMS[id]
+	var slice: Array[StringName] = [&"meadow_edge", &"hollow_west", &"hollow_clearing", &"hollow_east",
+			&"ember_entry", &"ember_leaves", &"ember_climb", &"ember_gate", &"ember_spirit_room"]
+	check("the slice's 9 rooms are on the world map, read from rooms/", slice.all(WorldMap.has_room)
+			and not WorldMap.has_room(&"room_template") and not WorldMap.has_room(&"gallery"), str(WorldMap.rooms().keys()))
+	check("the Spirit Room is known from its scene, with no checkpoints", WorldMap.rooms()[&"ember_spirit_room"]["spirit_room"]
+			and WorldMap.rooms()[&"ember_spirit_room"]["checkpoints"].is_empty(), "")
+	check("checkpoint stones are read from the room scenes", not WorldMap.rooms()[&"hollow_east"]["checkpoints"].is_empty(), "")
+	for id: StringName in WorldMap.rooms():
+		var info: Dictionary = WorldMap.rooms()[id]
 		var room: Room = load(info["scene"]).instantiate()
 		var terrain := room.get_node(^"Terrain") as TerrainLayout
-		check("%s's layout is %s tiles, as the world map says" % [id, info["size"]],
-				terrain != null and terrain.layout_size() == info["size"],
-				str(terrain.layout_size()) if terrain else "no TerrainLayout")
+		if terrain and terrain.layout != "":
+			check("%s's layout is %s tiles, as the world map says" % [id, info["size"]],
+					terrain.layout_size() == info["size"], str(terrain.layout_size()))
 		var bounds := Rect2(Vector2.ZERO, Vector2(info["size"]) * 16.0)
 		var spawns := room.get_node(^"Spawns").get_children()
 		check("%s has spawn points, all inside it" % id, not spawns.is_empty()
 				and spawns.all(func(s: Node) -> bool: return bounds.has_point((s as Node2D).position - Vector2(0, 1))), "")
 		room.free()
-	for a: StringName in WorldMap.ROOMS:
-		for b: StringName in WorldMap.ROOMS:
-			if a < b:
-				check("%s and %s don't overlap" % [a, b], not WorldMap.rect_px(a).intersects(WorldMap.rect_px(b)), "")
+	check("no two rooms overlap", WorldMap.overlaps().is_empty(), str(WorldMap.overlaps()))
 
 
 func test_checkpoint_respawn() -> void:
@@ -171,9 +177,10 @@ func test_world_color_cascade() -> void:
 	var props := main.room.get_node(^"Props").get_child(0) as CanvasItem
 	check("trees behind the ground are on the trees layer", _layer_of(props) == WorldColor.Layer.TREES, "")
 	var terrain := main.room.get_node(^"Terrain") as TerrainLayout
+	var thorns := main.room.get_node(^"Hazards").get_child(0) as Thorns
 	check("the ground is on the ground layer and thorns on the hazards layer",
-			_layer_of(terrain) == WorldColor.Layer.GROUND and _layer_of(terrain.hazards) == WorldColor.Layer.HAZARDS, "")
-	check("thorns draw in front of bushes and objects", terrain.hazards.z_index > 2, str(terrain.hazards.z_index))
+			_layer_of(terrain) == WorldColor.Layer.GROUND and _layer_of(thorns) == WorldColor.Layer.HAZARDS, "")
+	check("thorns draw in front of bushes and objects", thorns.z_index > 2, str(thorns.z_index))
 	GameState.set_color(GameState.SpiritColor.ORANGE, true)
 	await frames(2)
 	check("with orange the sky is full color, far hills 20%, near forest 10%",
@@ -200,6 +207,24 @@ func test_world_color_cascade() -> void:
 	check("the cascade ends on the table's values", _shown(0, 1.0) and _shown(1, 0.2) and _shown(2, 0.1), str(main._shown_color))
 
 
+func test_thorns() -> void:
+	main._enter_world_room(&"hollow_clearing", Vector2(88, 240))
+	await frames(2)
+	var thorns := main.room.get_node(^"Hazards").get_child(0) as Thorns
+	check("a Thorns row's hurt area spans its length", thorns.hurt_rect() == Rect2(2, 7, thorns.length * 16 - 4, 9),
+			str(thorns.hurt_rect()))
+	var deaths := GameState.deaths
+	hero.global_position = thorns.global_position + Vector2(thorns.length * 8.0, -4.0)
+	hero.velocity = Vector2.ZERO
+	check("dropping onto thorns kills the hero", await until(func() -> bool: return GameState.deaths == deaths + 1, 120), "")
+	await until(func() -> bool: return hero.state_name != &"dead" and not hero.frozen, 240)
+	thorns.direction = Thorns.Direction.LEFT
+	thorns.length = 3
+	check("turned left and stretched to 3, it runs downward", thorns.hurt_rect() == Rect2(7, 2, 9, 44), str(thorns.hurt_rect()))
+	thorns.direction = Thorns.Direction.UP
+	thorns.length = 2
+
+
 func test_spirit_door() -> void:
 	GameState.set_color(GameState.SpiritColor.ORANGE, false)
 	main._enter_world_room(&"ember_gate", Vector2(2720, -64))
@@ -210,6 +235,8 @@ func test_spirit_door() -> void:
 	Input.action_release(&"move_left")
 	check("walking into the door asks if you're ready", asked, str(hero.global_position))
 	check("  with the hero held still while it asks", hero.frozen, "")
+	check("the gate is built from parts: stone, 8 runes, portal, motes", door.stone is ArchwayStone
+			and door.runes.get_child_count() == 8 and door.portal.size == Vector2(64, 96), str(door.portal.size))
 	await frames(3)
 	Input.action_press(&"ui_cancel")
 	await frames(2)
@@ -239,6 +266,65 @@ func test_spirit_door() -> void:
 	door = main.room.find_children("*", "SpiritArchway", true, false)[0]
 	check("walking out of the Spirit Room through the door never asks, and passes it",
 			not main.confirm.visible and hero.global_position.x > door.outside_x(), str(hero.global_position))
+
+
+func test_menus() -> void:
+	main._enter_world_room(&"hollow_clearing", Vector2(88, 240))
+	await frames(3)
+	await press(&"pause")
+	check("Esc pauses the game and opens the pause menu", get_tree().paused and main.pause_menu.is_open, "")
+	var x := hero.global_position.x
+	Input.action_press(&"move_right")
+	await frames(10)
+	Input.action_release(&"move_right")
+	check("  the hero stays still while paused", hero.global_position.x == x, "")
+	# Rows: Resume, Map, Settings, Quit.
+	await press(&"move_down")
+	await press(&"move_down")
+	await press(&"ui_accept")
+	check("Settings opens from the pause menu", main.pause_menu.title.text == "Settings", main.pause_menu.title.text)
+	# Rows: Music, Sound, Fullscreen, Window size, Screen shake, Speedrun timer, Back.
+	var music := Settings.music_volume
+	await press(&"move_left")
+	check("  the music slider steps down by 10%", is_equal_approx(Settings.music_volume, music - 0.1), str(Settings.music_volume))
+	await press(&"move_right")
+	for i in 4:
+		await press(&"move_down")
+	var shake := Settings.screen_shake
+	await press(&"ui_accept")
+	check("  screen shake toggles", Settings.screen_shake != shake, "")
+	await press(&"ui_accept")
+	await press(&"move_down")
+	await press(&"ui_accept")
+	check("  the speedrun timer shows when turned on", Settings.speedrun_timer and main.get_node(^"Hud/SpeedrunTimer").visible, "")
+	await press(&"ui_accept")
+	await press(&"pause")
+	check("Esc in Settings goes back to the pause menu", main.pause_menu.title.text == "Paused" and main.pause_menu.is_open, "")
+	await press(&"move_up")
+	await press(&"ui_accept")
+	check("Map opens from the pause menu", main.map_screen.is_open and get_tree().paused, "")
+	await press(&"map")
+	check("closing it goes back to the pause menu", not main.map_screen.is_open and main.pause_menu.visible
+			and get_tree().paused, "")
+	await press(&"pause")
+	check("Esc again resumes", not get_tree().paused and not main.pause_menu.is_open, "")
+	await press(&"map")
+	check("Tab opens the map on its own", main.map_screen.is_open and get_tree().paused, "")
+	check("  showing the rooms visited", main.map_screen._visited_rooms().has(&"ember_gate")
+			and main.map_screen._visited_rooms().has(&"hollow_clearing"), str(main.map_screen._visited_rooms()))
+	await press(&"map")
+	check("  and Tab closes it", not main.map_screen.is_open and not get_tree().paused, "")
+	main._enter_world_room(&"ember_spirit_room", Vector2.INF)
+	await frames(3)
+	await press(&"pause")
+	# Rows: Resume, Map, Settings, Leave Spirit Room, Quit.
+	for i in 3:
+		await press(&"move_down")
+	await press(&"ui_accept")
+	await until(func() -> bool: return main.room.room_id == &"ember_gate" and not main.transitioning, 120)
+	var door: SpiritArchway = main.room.find_children("*", "SpiritArchway", true, false)[0]
+	check("Leave Spirit Room puts the hero outside its archway", main.room.room_id == &"ember_gate"
+			and absf(hero.global_position.x - door.outside_x()) < 2.0 and not get_tree().paused, str(hero.global_position))
 
 
 func test_save_round_trip() -> void:
@@ -278,6 +364,14 @@ func _nearest(nodes: Array, point: Vector2) -> Node2D:
 		if best == null or node.global_position.distance_to(point) < best.global_position.distance_to(point):
 			best = node
 	return best
+
+
+## Press and release a button, a frame each.
+func press(action: StringName) -> void:
+	Input.action_press(action)
+	await frames(1)
+	Input.action_release(action)
+	await frames(1)
 
 
 func frames(count: int) -> void:

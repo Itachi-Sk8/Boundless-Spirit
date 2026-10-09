@@ -9,13 +9,19 @@ extends TileMapLayer
 ##         . empty (anything else is empty too)
 ##
 ## Thorns go on their own layer (`hazards`, a child drawn in front of the room's bushes and
-## objects) so nothing hides them.
+## objects) so nothing hides them. Grass tiles have their ground (the soil) on the grid, so the
+## hero's feet meet the soil; the grass blades above it go in the empty cell above, on another
+## layer (`grass_tops`) that's drawn with the terrain, behind the hero and the decoration. Rooms use Thorns objects (entities/thorns.tscn) instead, which
+## can be moved, stretched, and tinted in the editor; the characters still work.
 
 # Atlas layout of art/tilesets/forest.png (see tools/build_art.py).
 const GRASS_ROW := 0
 const ROCK_ROW := 1
 const VARIANT_ROW := 2
 const MISC_ROW := 3
+## Grass blades over top-edge grass: by edge mask, and for the top-surface variants.
+const GRASS_TOP_ROW := 4
+const GRASS_TOP_VARIANT_ROW := 5
 const PLANK_LEFT := Vector2i(0, MISC_ROW)
 const PLANK_MID := Vector2i(1, MISC_ROW)
 const PLANK_RIGHT := Vector2i(2, MISC_ROW)
@@ -42,6 +48,8 @@ const HAZARD_Z := 3
 
 ## The thorns, on their own layer in front of everything else in the room.
 var hazards: TileMapLayer
+## The grass blades over top-edge grass, in the cells above it.
+var grass_tops: TileMapLayer
 
 
 func _ready() -> void:
@@ -51,6 +59,12 @@ func _ready() -> void:
 	hazards.z_index = HAZARD_Z
 	# Internal: built from the layout every time, never saved into the scene.
 	add_child(hazards, false, Node.INTERNAL_MODE_BACK)
+	grass_tops = TileMapLayer.new()
+	grass_tops.name = "GrassTops"
+	grass_tops.tile_set = tile_set
+	# Same color layer as the ground (Room paints the terrain).
+	grass_tops.use_parent_material = true
+	add_child(grass_tops, false, Node.INTERNAL_MODE_BACK)
 	rebuild()
 
 
@@ -69,12 +83,17 @@ func rebuild() -> void:
 		return
 	clear()
 	hazards.clear()
+	grass_tops.clear()
 	for y in rows.size():
 		for x in rows[y].length():
 			var symbol := rows[y][x]
 			var cell := Vector2i(x, y)
 			if symbol in SOLID:
-				set_cell(cell, 0, _terrain_tile(rows, x, y, symbol))
+				var tile := _terrain_tile(rows, x, y, symbol)
+				set_cell(cell, 0, tile)
+				var blades := _grass_top(tile)
+				if blades.x >= 0 and y > 0:
+					grass_tops.set_cell(cell + Vector2i.UP, 0, blades)
 			elif symbol == "=":
 				var left := _at(rows, x - 1, y) == "="
 				var right := _at(rows, x + 1, y) == "="
@@ -109,6 +128,15 @@ func _terrain_tile(rows: PackedStringArray, x: int, y: int, symbol: String) -> V
 		if pick < 35:
 			return Vector2i(terrain * 4 + (0 if mask == 0 else 2) + (pick % 2), VARIANT_ROW)
 	return Vector2i(mask, GRASS_ROW if terrain == 0 else ROCK_ROW)
+
+
+# The grass blades to draw above an atlas tile, or (-1, -1) for none (not a top-edge grass tile).
+func _grass_top(tile: Vector2i) -> Vector2i:
+	if tile.y == GRASS_ROW and tile.x & UP:
+		return Vector2i(tile.x, GRASS_TOP_ROW)
+	if tile.y == VARIANT_ROW and tile.x in [2, 3]:
+		return Vector2i(tile.x, GRASS_TOP_VARIANT_ROW)
+	return Vector2i(-1, -1)
 
 
 func _rows() -> PackedStringArray:

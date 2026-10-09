@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d07i6kb1fkqh0"
-path="res://.godot/imported/archway_glow.png-a41fcb85f271d4953ee4a8f9c8e4aa82.ctex"
+uid="uid://c15qavdrvcywp"
+path="res://.godot/imported/bee.png-92571f6bf407181f7385611de0ae168d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/entities/archway_glow.png"
-dest_files=["res://.godot/imported/archway_glow.png-a41fcb85f271d4953ee4a8f9c8e4aa82.ctex"]
+source_file="res://art/creatures/bee.png"
+dest_files=["res://.godot/imported/bee.png-92571f6bf407181f7385611de0ae168d.ctex"]
 
 [params]
 

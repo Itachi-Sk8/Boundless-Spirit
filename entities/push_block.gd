@@ -33,12 +33,18 @@ func push(dx: float) -> float:
 	return global_position.x - before
 
 
+# Redraw on whole game pixels as it moves (see Player._process).
+func _process(_delta: float) -> void:
+	queue_redraw()
+
+
 func reset_to_start() -> void:
 	global_position = _start
 	velocity = Vector2.ZERO
 
 
 func _draw() -> void:
+	draw_set_transform(global_position.round() - global_position)
 	if texture:
 		draw_texture_rect_region(texture, Rect2(-8, -16, 16, 16), texture_region)
 		return

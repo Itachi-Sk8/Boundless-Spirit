@@ -17,6 +17,11 @@ func setup(hero: Player) -> void:
 	sprite.flip_h = hero.facing < 0
 
 
+# Keep the art on whole game pixels (see Player._process).
+func _process(_delta: float) -> void:
+	sprite.position = Player.SPRITE_OFFSET + (global_position.round() - global_position)
+
+
 func fly(direction: Vector2, speed: float) -> void:
 	velocity = direction.normalized() * speed
 	if direction.x != 0.0:

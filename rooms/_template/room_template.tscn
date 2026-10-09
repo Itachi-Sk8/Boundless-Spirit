@@ -5,12 +5,16 @@
 [ext_resource type="TileSet" path="res://art/tilesets/forest.tres" id="3_forest"]
 
 [node name="Room" type="Node2D"]
+editor_description = "A new room: see docs/BUILDING_ROOMS.md. Duplicate this file into a region folder (the file name is the room's id), then set World Origin and Region here."
 script = ExtResource("1_room")
+world_origin = Vector2i(0, 40)
 
 [node name="Props" type="Node2D" parent="."]
 z_index = -20
+editor_description = "Trees and big rocks behind the ground (drag PNGs from art/props). Drawn on the trees color layer."
 
 [node name="Terrain" type="TileMapLayer" parent="."]
+editor_description = "The ground, from the Layout text: # grass, % rock, = plank (one-way), . empty. One character per 16 px tile; the text's size is the room's size."
 tile_set = ExtResource("3_forest")
 script = ExtResource("2_layout")
 layout = "
@@ -35,10 +39,21 @@ layout = "
 
 [node name="Decor" type="Node2D" parent="."]
 z_index = 1
+editor_description = "Bushes, mushrooms, and stones in front of the ground (drag PNGs from art/props)."
+
+[node name="Hazards" type="Node2D" parent="."]
+editor_description = "Thorns, water, stalactites, falling and rolling logs (from entities/)."
 
 [node name="Entities" type="Node2D" parent="."]
+z_index = 2
+editor_description = "Everything else from entities/: platforms, checkpoints, flowers, plates and doors, wind, creatures..."
+
+[node name="Signs" type="Node2D" parent="."]
+z_index = 5
+editor_description = "Labels with tips; they use the game's font automatically."
 
 [node name="Spawns" type="Node2D" parent="."]
+editor_description = "Where the hero appears. Start: new games and Spirit Room restarts. Add one beside each way in: after a death the hero comes back at the one nearest to where it entered."
 
 [node name="Start" type="Marker2D" parent="Spawns"]
 position = Vector2(240, 224)

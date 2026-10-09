@@ -16,6 +16,9 @@ const CASCADE_LAYER_TIME := 1.6
 const CASCADE_STAGGER := 0.45
 ## After touching an orb, how long to wait for the hero to land before absorbing anyway.
 const LAND_WAIT_FRAMES := 180
+## How hard and long the screen shakes when the hero dies (px, seconds), if shake is on.
+const DEATH_SHAKE := 3.0
+const DEATH_SHAKE_TIME := 0.2
 ## Where the hero waits while a room loads, when its spot there isn't known yet.
 const FAR_AWAY := Vector2(-100000, -100000)
 const SPIRIT_DOOR_QUESTION := "Are you ready to challenge your Spirit?"
@@ -52,6 +55,8 @@ var _cascading := false
 @onready var prompt: Prompt = $Hud/Prompt
 @onready var confirm: ConfirmPopup = $Hud/ConfirmPopup
 @onready var debug_overlay: CanvasLayer = $DebugOverlay
+@onready var pause_menu: PauseMenu = $PauseMenu
+@onready var map_screen: MapScreen = $MapScreen
 
 
 func _enter_tree() -> void:
@@ -113,6 +118,38 @@ func _physics_process(_delta: float) -> void:
 			player.velocity.y = maxf(player.velocity.y, 0.0)
 
 
+## The pause menu and map can open: not during room changes, popups, or the color unlock.
+func can_pause() -> bool:
+	return room != null and not transitioning and not player.frozen and not player.input_locked \
+			and not confirm.visible
+
+
+## True during a Spirit Room run (until its color is taken).
+func is_spirit_run() -> bool:
+	return _run_active
+
+
+func run_time() -> float:
+	return _run_time
+
+
+func run_deaths() -> int:
+	return _run_deaths
+
+
+## Inside a Spirit Room whose archway is known, so the pause menu can offer the way out.
+func can_leave_spirit_room() -> bool:
+	return room != null and room.spirit_room and not WorldMap.door_into(room.room_id).is_empty()
+
+
+## Leave a Spirit Room from the pause menu: back outside its archway. The room resets.
+func leave_spirit_room() -> void:
+	var door := WorldMap.door_into(room.room_id)
+	if door.is_empty():
+		return
+	await _travel(door["room"], &"", door["outside"])
+
+
 ## Put the hero back at its respawn point with the room reset, as after a death.
 func respawn_player() -> void:
 	room.reset_room()
@@ -142,7 +179,7 @@ func knock(door: SpiritArchway) -> void:
 	# The press that answered shouldn't also make the hero jump.
 	player.jump_buffer_timer = 0.0
 	if yes:
-		await _enter_room_at(door.target_room, door.target_spawn)
+		await _travel(door.target_room, door.target_spawn)
 	else:
 		player.global_position.x = door.outside_x()
 		await get_tree().process_frame
@@ -185,7 +222,7 @@ func collect_color(orb: ColorOrb) -> void:
 
 func _enter_world_room(id: StringName, spot: Vector2) -> void:
 	GameState.room_id = id
-	_enter(id, WorldMap.ROOMS[id]["scene"], WorldMap.rect_px(id).position, spot)
+	_enter(id, WorldMap.scene_of(id), WorldMap.rect_px(id).position, spot)
 
 
 ## Load a room and put the hero at `spot` (Vector2.INF: the room's Start spawn, or its first).
@@ -203,14 +240,16 @@ func _enter(id: StringName, scene_path: String, origin: Vector2, spot: Vector2) 
 		GameState.save_game()
 
 
-## Go into a world room at one of its spawn points, behind the letterbox (Spirit Room doors).
-func _enter_room_at(id: StringName, spawn: StringName) -> void:
+## Go into a world room behind the letterbox (Spirit Room doors, leaving a Spirit Room): at
+## `spot` in world px if given, otherwise at the spawn point named `spawn`.
+func _travel(id: StringName, spawn: StringName, spot := Vector2.INF) -> void:
 	transitioning = true
 	player.frozen = true
 	await letterbox.close()
 	player.global_position = FAR_AWAY
-	_swap_room(id, WorldMap.ROOMS[id]["scene"], WorldMap.rect_px(id).position)
-	var spot := _spawn_or_first(spawn)
+	_swap_room(id, WorldMap.scene_of(id), WorldMap.rect_px(id).position)
+	if spot == Vector2.INF:
+		spot = _spawn_or_first(spawn)
 	_entry_spawn = spot
 	player.respawn(spot, true)
 	# Face into the room.
@@ -242,11 +281,13 @@ func _swap_room(id: StringName, scene_path: String, origin: Vector2) -> void:
 	_checkpoint = Vector2.INF
 	camera.setup(player, room.world_bounds())
 	backdrop.room_bottom = room.world_bounds().end.y
-	var region: StringName = WorldMap.ROOMS[id]["region"] if WorldMap.ROOMS.has(id) else &""
+	var region := WorldMap.region_of(id)
 	backdrop.set_tint(REGION_TINT.get(region, Color.WHITE))
+	if WorldMap.has_room(id):
+		GameState.mark_visited(id)
 	_update_world_color()
 	if room.debug_room:
-		debug_overlay.get_node(^"Label").show()
+		debug_overlay.show_info()
 	# A Spirit Room is timed until its color is taken.
 	_run_active = room.spirit_room and room.find_children("*", "ColorOrb", true, false).any(
 			func(orb: Node) -> bool: return not orb.is_queued_for_deletion())
@@ -258,7 +299,7 @@ func _change_room(next: StringName) -> void:
 	transitioning = true
 	player.frozen = true
 	await letterbox.close()
-	_swap_room(next, WorldMap.ROOMS[next]["scene"], WorldMap.rect_px(next).position)
+	_swap_room(next, WorldMap.scene_of(next), WorldMap.rect_px(next).position)
 	_entry_spawn = room.nearest_spawn(player.global_position)
 	GameState.room_id = next
 	GameState.respawn_position = _entry_spawn
@@ -278,6 +319,7 @@ func _respawn_spot() -> Vector2:
 
 func _on_player_died() -> void:
 	GameState.add_death()
+	camera.shake(DEATH_SHAKE, DEATH_SHAKE_TIME)
 	if _run_active:
 		_run_deaths += 1
 		_run_time = 0.0

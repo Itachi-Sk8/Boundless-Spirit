@@ -1,0 +1,7 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://entities/plate_door.gd" id="1_script"]
+
+[node name="PlateDoor" type="AnimatableBody2D"]
+collision_mask = 0
+script = ExtResource("1_script")
