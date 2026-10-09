@@ -1,0 +1,11 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://entities/message_trigger.gd" id="1_message"]
+
+[node name="MessageTrigger" type="Area2D"]
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+script = ExtResource("1_message")
+
+[node name="Shape" type="CollisionShape2D" parent="."]

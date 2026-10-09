@@ -21,8 +21,9 @@ func _physics_process(delta: float) -> void:
 		if _dark_left <= 0.0:
 			_set_lit(true)
 		return
+	var rect := Touch.shape_rect($Shape)
 	for body in get_overlapping_bodies():
-		if body is Player and body.refill_dash():
+		if Touch.hero_in(body, rect) and body.refill_dash():
 			_dark_left = relight_time
 			_set_lit(false)
 			return

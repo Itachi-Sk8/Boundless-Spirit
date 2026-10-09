@@ -71,6 +71,9 @@ func _run() -> void:
 		await test.call()
 	for action in ACTIONS:
 		Input.action_release(action)
+	if _world:
+		_world.free()
+	await wait(60) # Let the last sounds finish so none is reported as leaked at exit.
 	print("\n=== Level-building numbers (px; a tile is 16 px) ===")
 	for row in measurements:
 		print("%-34s %7.1f px  %5.1f tiles" % [row[0], row[1], row[1] / TILE])

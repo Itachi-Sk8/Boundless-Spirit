@@ -43,6 +43,9 @@ const EPSILON := 0.0001
 const VINE_SENSOR_HEIGHT := 14.0
 const VINE_SENSOR_SIZE := Vector2(4, 4)
 
+## Landing faster than this plays the landing sound, in px/s.
+const LAND_SOUND_SPEED := 120.0
+
 ## How far below a ledge's top the feet hang. Set by the art: in the ledge_hang frame the
 ## hand is 29 px above the feet.
 const LEDGE_HANG_DROP := 29.0
@@ -69,6 +72,17 @@ var shape := Shape.STAND
 var state_name: StringName = &""
 ## True while crouched and still long enough to peek the camera down.
 var peeking := false
+## While frozen the hero ignores input and stops moving, keeping its velocity: used during
+## room transitions and the color unlock.
+var frozen := false
+## While input is locked the hero ignores the controls but still falls and lands: used after
+## touching a color orb, so the color is absorbed on the ground.
+var input_locked := false:
+	set(value):
+		input_locked = value
+		if value:
+			jump_hold_timer = 0.0
+			jump_buffer_timer = 0.0
 ## The spirit during Spirit Phase, so the camera can follow it.
 var spirit: Node2D
 ## Filled by try_ledge_grab() for the ledge_grab state.
@@ -108,8 +122,13 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	_read_input(delta)
-	_state.physics_update(delta)
+	if frozen:
+		return
+	if input_locked:
+		_fall_without_control(delta)
+	else:
+		_read_input(delta)
+		_state.physics_update(delta)
 	if state_name != &"dead" and touching_hazard():
 		die()
 	_update_spent_parts()
@@ -187,11 +206,24 @@ func apply_gravity(delta: float) -> void:
 	velocity.y = minf(velocity.y + tuning.gravity * delta, tuning.max_fall_speed)
 
 
+## Gravity and landing with no input, easing to a stop sideways.
+func _fall_without_control(delta: float) -> void:
+	var rate := tuning.ground_decel if is_on_floor() else tuning.air_decel
+	velocity.x = move_toward(velocity.x, 0.0, rate * delta)
+	apply_gravity(delta)
+	move(delta)
+	play(&"idle" if is_on_floor() else &"fall")
+
+
 ## move_and_slide() plus corner correction and coyote time. States move through this.
 func move(delta: float) -> void:
 	if velocity.y < 0.0:
 		_correct_corner(delta)
+	var was_on_floor := is_on_floor()
+	var fall_speed := velocity.y
 	move_and_slide()
+	if is_on_floor() and not was_on_floor and fall_speed > LAND_SOUND_SPEED:
+		Sfx.play(&"land", -4.0)
 	if is_on_floor():
 		coyote_timer = tuning.coyote_time
 	else:
@@ -256,6 +288,7 @@ func try_ground_jump() -> bool:
 	if jump_buffer_timer <= EPSILON or not (is_on_floor() or coyote_timer > EPSILON):
 		return false
 	start_jump(tuning.jump_speed, tuning.jump_hold_time)
+	Sfx.play(&"jump")
 	change_state(&"jump")
 	return true
 
@@ -271,6 +304,7 @@ func try_air_jump() -> bool:
 	if has_air_jump and can(GameState.SpiritColor.YELLOW):
 		has_air_jump = false
 		start_jump(tuning.double_jump_speed, tuning.double_jump_hold_time, &"air_spin")
+		Sfx.play(&"double_jump")
 		change_state(&"jump")
 		return true
 	return false
@@ -296,6 +330,7 @@ func kick_off_wall(side: int) -> void:
 	facing = -side
 	lock_input_toward(side, tuning.wall_jump_lock_time)
 	start_jump(tuning.jump_speed, tuning.jump_hold_time)
+	Sfx.play(&"wall_jump")
 
 
 func try_wall_slide() -> bool:
@@ -495,8 +530,9 @@ func die() -> void:
 		change_state(&"dead")
 
 
-## Called by the room once the death animation is over.
-func respawn(at: Vector2) -> void:
+## Put the hero at `at`, ready to play: after a death, or when entering the game. `quiet`
+## skips the respawn sound.
+func respawn(at: Vector2, quiet := false) -> void:
 	global_position = at
 	velocity = Vector2.ZERO
 	facing = 1
@@ -505,6 +541,10 @@ func respawn(at: Vector2) -> void:
 	coyote_timer = 0.0
 	set_shape(Shape.STAND)
 	refill()
+	frozen = false
+	input_locked = false
+	if not quiet:
+		Sfx.play(&"respawn", -6.0)
 	change_state(&"idle")
 
 

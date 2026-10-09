@@ -34,7 +34,7 @@ The hero's spirit is not bound to its body, so its colors have slipped away into
 
 - **The hero:** Unnamed for now. A small figure whose six body parts each carry one color. At the start, all six are grey.
 - **The setup:** The hero wakes in the Hollow, a grey clearing at the foot of a great tree in the middle of the forest. The forest lost its color along with the hero.
-- **The journey:** Each color waits at the end of a Spirit Room. Taking it back restores that body part, grants an ability, and brings color back to the region around it.
+- **The journey:** Each color waits at the end of a Spirit Room. Taking it back restores that body part, grants an ability, and returns more of the forest's color, layer by layer from the sky forward.
 - **The finale:** The last color, blue, gives Spirit Phase: the spirit leaves the body for a moment, the "boundless spirit" of the title. It opens the great tree, and the climb to the Heart at its crown ends the game.
 
 **Story beats to write later**
@@ -132,7 +132,7 @@ Ember Grove is open from the start; after that, each region needs the color earn
 
 ## Regions
 
-The forest has a grey hub, six color regions, and a finale. Each region adds its own hazards, holds one Spirit Room, and regains its color when that room is cleared. All names are working names.
+The forest has a grey hub, six color regions, and a finale. Each region adds its own hazards and holds one Spirit Room; clearing it returns the next layer of the forest's color (see Grey to color). All names are working names.
 
 | Region | Color | Look | New hazards and creatures | Its Spirit Room tests | Way in |
 | --- | --- | --- | --- | --- | --- |
@@ -157,12 +157,12 @@ A Spirit Room is one continuous challenge that must be cleared in a single run: 
 **Rules**
 
 - **Six on the main path,** one per color region, plus hidden bonus rooms (see Difficulty and optional content).
-- **The entrance** is a stone archway that glows faintly in the color waiting inside.
+- **The entrance** is a stone archway whose carved runes and doorway glow in the color waiting inside. It's the only way in: walking into the doorway asks "Are you ready to challenge your Spirit?" Yes enters at the room's start; No leaves the player outside. Walking back out never asks.
 - **No checkpoints.** Death restarts the room instantly from the start.
 - **Length:** 45–90 seconds for a clean run. The room scrolls like any other.
 - **Leaving is allowed** through the entrance or the pause menu; the room resets.
 - **No collectibles inside,** so a clean run is the only goal.
-- **A results card** at the end shows the time and deaths for that room and saves the best time.
+- **The run is recorded quietly:** its time (best kept) and deaths are saved for later, with no card interrupting the moment.
 
 **How to build one**
 
@@ -175,7 +175,7 @@ A Spirit Room is one continuous challenge that must be cleared in a single run: 
 **The reward**
 
 - The color floats at the end of the room; touching it ends the run.
-- The color flows into its body part, the ability's button prompt appears, and the region outside floods with color.
+- The player lands first (controls off), then the color flows into its body part, the ability's button prompt appears, and the world's color cascades a layer forward.
 - The exit leads out a different way than the entrance, often as a shortcut toward the Hollow.
 
 ## Death, checkpoints, and saving
@@ -284,14 +284,25 @@ The art already exists for nearly everything; the main new visual work is the gr
 **Grey to color**
 
 - **The hero:** one palette-swap shader turns each body part grey until its color is earned. Each part keeps its own small set of shades across every animation, so no grey copies of the sprites are needed. Dash and Slide add a few effect colors that need mapping too.
-- **The world:** it starts desaturated, and a full-screen shader sets each region's color strength. Clearing a region's Spirit Room animates its color back in.
+- **The world returns in layers, back to front** (decided at the first slice playtest; replaces region by region). The world is split into six layers, and color number *n* owns layer *n*: it gives that layer full color, the next layer 20%, and the one after 10%, and amounts from different colors add up, so color cascades forward. Every room shares the same strengths, so color stays wherever it has returned, in rooms loaded later and after saving and loading.
+
+  | After color | Sky | Far hills | Near forest | Trees behind | Front decoration | Ground and gameplay |
+  | --- | --- | --- | --- | --- | --- | --- |
+  | none | 0 | 0 | 0 | 0 | 0 | 0 |
+  | 1 Orange | 100 | 20 | 10 | 0 | 0 | 0 |
+  | 2 Yellow | 100 | 100 | 30 | 10 | 0 | 0 |
+  | 3 Green | 100 | 100 | 100 | 30 | 10 | 0 |
+  | 4 Red | 100 | 100 | 100 | 100 | 30 | 10 |
+  | 5 Purple | 100 | 100 | 100 | 100 | 100 | 30 |
+  | 6 Blue | 100 | 100 | 100 | 100 | 100 | 100 |
+
+  Hazards (thorns) always keep at least 10% color so they read in a grey world, and follow the ground layer above that. Color orbs, glowing doorways, and the faint traces on color gates always show full color. When a color returns, the layers animate one after another, starting at the back.
 - **The hub:** the great tree in the Hollow gains a band of each color as it returns.
 - **Spirit Phase:** no new art. The spirit is the hero's own sprite drawn glowing and blue.
-- **Worth testing early:** bringing color back by hue across the whole world, so every orange in the forest returns with orange. It could look striking, but it depends on how the art's colors fall.
 
 **Audio** (free packs as placeholders; check each license)
 
-- **Music:** one calm track per region and a tense track for Spirit Rooms. A region's track gains an instrument layer when its color returns.
+- **Music:** one calm track per region and a tense track for Spirit Rooms. A region's track gains an instrument layer once its Spirit Room is cleared.
 - **Sound effects to source first:** jump, double jump, dash, slide, wall jump, land, death, respawn, checkpoint, and color unlock.
 - **Sources:** itch.io and OpenGameArt packs for music; sfxr-style generators for quick retro effects.
 
@@ -313,7 +324,7 @@ res://
   player/    player scene, one script per movement state, tuning file
   rooms/     _template/ plus one folder per region
   entities/  hazards, creatures, push blocks, spirit barriers, and other objects
-  ui/        title, pause, map, results card
+  ui/        title, pause, map, popups
   shaders/   palette swap, world color, spirit glow
   art/       sprites, tilesets, backgrounds
   audio/     music, sound effects
@@ -380,11 +391,34 @@ A 2-hour main path works out to roughly 75 rooms. That's a lot for a hobby proje
 1. **Setup.** Godot project, folder layout, CLAUDE.md, pixel-perfect settings, hero animations imported. Done when the grey hero stands in an empty room at the right scale.
 2. **Movement test room.** Starting moves, death and instant respawn, the camera, and all six abilities behind debug switches in a plain grey room. Done when the movement feels right to you and the level-building numbers are recorded.
 3. **Vertical slice.** The Hollow and Ember Grove with real art, room changes, checkpoints, autosave, the first Spirit Room, and the orange unlock with its color effects. Done when a friend plays it start to finish; their time checks the 2-hour estimate.
-4. **Content tools.** Room template, region color shader, map screen, the full hazard and creature set, pause and settings menus. Done when you can build a new room from the template without Claude.
+4. **Content tools.** Room template, world color layers, map screen, the full hazard and creature set, pause and settings menus. Done when you can build a new room from the template without Claude.
 5. **Regions 2–6.** One region at a time, each with its rooms, Spirit Room, color unlock, and music, playtested before the next.
 6. **The Heart and endings.** The final climb, the ending, the alternate ending, and credits.
 7. **Optional content and polish.** Wisps, bonus Spirit Rooms, a sound pass, particles and screen shake, control remapping.
 8. **Release.** A friends build on itch.io first. Steam charges a $100 fee per game, paid back once the game earns $1,000 there. [source](https://partner.steamgames.com/doc/gettingstarted/appfee)
+
+### The vertical slice as built (v1.0.5)
+
+Nine rooms, about 4 screens of the Hollow and 6 of Ember Grove, plus a teaser of Sunlit Meadow.
+The route: wake in the **Hollow clearing** at the foot of the great tree → east through
+**Hollow East** (push a stone to climb a high ledge, crumbling ledge over thorns; a closed gate
+on a high ledge) → **Ember Grove**: crumbling ledges, lily pads that sink into a bottomless pit, a
+vertical climb with a stone to pull out of a niche, and the **archway**, which asks if you're ready → the **Spirit Room**
+(4 sections: thorn-pit jumps ending under a thorn ceiling, crumbling ledges, pushing a stone to
+a wall under thorns, sinking leaves to the orange color) → the hero lands, orange returns, the sky
+regains its color and the cascade begins → the orange gate opens a shaft down into Hollow East, where
+the closed gate opens from behind (the shortcut) → back west to **Hollow West**'s wide gap,
+crossed with the new dash → **Sunlit Meadow**'s edge and the end message.
+
+- **Rooms connect by position.** Each room has a place on one world grid; walking off an edge
+  enters whatever room is there. This keeps rooms free of exit wiring and gives the map screen
+  its layout for free.
+- **Color comes back in layers.** Each layer of the world (backdrop, trees, decoration, ground,
+  hazards) draws grey with its own color strength, all set from the colors collected.
+- **Placeholder sound:** retro effects generated in code (no licenses); no music yet.
+- **For the friend playtest:** the automated playthrough clears the Spirit Room in 10.5 s
+  without a death, so a human clean run may land well under the 45–90 s target. Watch how
+  long it takes and how many attempts; it may need a fifth section or a second screen of height.
 
 ## Open questions
 
@@ -394,7 +428,7 @@ None of these block the first two milestones; each has a working answer in the d
 - [ ] Final names for the regions, the checkpoint stones, and the wisps
 - [ ] One run speed (current plan), or bring back the prototype's run button?
 - [ ] Spirit Phase: steer a spirit (current plan), or a simpler phase-through dash?
-- [ ] Color returns by region (current plan), or by hue across the whole world?
+- [x] Color returns by layer, back to front, cascading forward (decided at the first slice playtest)
 - [ ] Where Asset Packs 1–5 came from, and their license
 - [ ] The Legacy-Fantasy pack's full terms, including any credit requirement
 - [ ] What the alternate ending shows

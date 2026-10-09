@@ -2,22 +2,14 @@
 
 [ext_resource type="Script" path="res://rooms/test/movement_test.gd" id="1_room"]
 [ext_resource type="TileSet" path="res://art/tilesets/test_tiles.tres" id="2_tiles"]
-[ext_resource type="PackedScene" path="res://player/player.tscn" id="3_player"]
-[ext_resource type="Script" path="res://game/game_camera.gd" id="4_camera"]
-[ext_resource type="PackedScene" path="res://ui/debug_overlay.tscn" id="5_overlay"]
 
 [node name="MovementTest" type="Node2D"]
 script = ExtResource("1_room")
+debug_room = true
 
-[node name="Tiles" type="TileMapLayer" parent="."]
+[node name="Terrain" type="TileMapLayer" parent="."]
 tile_set = ExtResource("2_tiles")
 
-[node name="Spawn" type="Marker2D" parent="."]
+[node name="Spawns" type="Node2D" parent="."]
 
-[node name="Player" parent="." instance=ExtResource("3_player")]
-
-[node name="Camera" type="Camera2D" parent="."]
-script = ExtResource("4_camera")
-
-[node name="DebugOverlay" parent="." node_paths=PackedStringArray("room") instance=ExtResource("5_overlay")]
-room = NodePath("..")
+[node name="Start" type="Marker2D" parent="Spawns"]

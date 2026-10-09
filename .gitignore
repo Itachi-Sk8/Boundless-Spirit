@@ -7,3 +7,6 @@
 # OS clutter
 .DS_Store
 Thumbs.db
+
+# Python bytecode from tools/
+__pycache__/

@@ -10,6 +10,7 @@ func enter(_previous: StringName) -> void:
 	_time_left = tuning.slide_time
 	player.velocity.x = player.facing * tuning.slide_speed
 	player.play(&"slide", true)
+	Sfx.play(&"slide", -4.0)
 
 
 func physics_update(delta: float) -> void:

@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://entities/color_orb.gd" id="1_orb"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_orb"]
+radius = 9.0
+
+[node name="ColorOrb" type="Area2D"]
+z_index = 21
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+script = ExtResource("1_orb")
+
+[node name="Shape" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_orb")

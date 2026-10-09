@@ -1,0 +1,33 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://entities/shortcut_gate.gd" id="1_gate"]
+[ext_resource type="Texture2D" path="res://art/entities/gate.png" id="2_gate"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_gate"]
+size = Vector2(14, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_trigger"]
+size = Vector2(12, 40)
+
+[node name="ShortcutGate" type="StaticBody2D"]
+z_index = -1
+script = ExtResource("1_gate")
+
+[node name="Sprite" type="Sprite2D" parent="."]
+texture = ExtResource("2_gate")
+centered = false
+offset = Vector2(-8, -48)
+
+[node name="Shape" type="CollisionShape2D" parent="."]
+position = Vector2(0, -24)
+shape = SubResource("RectangleShape2D_gate")
+
+[node name="Trigger" type="Area2D" parent="."]
+position = Vector2(14, 0)
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+
+[node name="Shape" type="CollisionShape2D" parent="Trigger"]
+position = Vector2(0, -20)
+shape = SubResource("RectangleShape2D_trigger")

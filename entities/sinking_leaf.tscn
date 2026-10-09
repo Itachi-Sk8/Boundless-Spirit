@@ -1,0 +1,31 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://entities/sinking_leaf.gd" id="1_leaf"]
+[ext_resource type="Texture2D" path="res://art/props/leaf_platform.png" id="2_leaf"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
+size = Vector2(30, 6)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_sensor"]
+size = Vector2(30, 6)
+
+[node name="SinkingLeaf" type="AnimatableBody2D"]
+script = ExtResource("1_leaf")
+
+[node name="Sprite" type="Sprite2D" parent="."]
+texture = ExtResource("2_leaf")
+offset = Vector2(0, 3)
+
+[node name="Shape" type="CollisionShape2D" parent="."]
+position = Vector2(0, 3)
+shape = SubResource("RectangleShape2D_body")
+one_way_collision = true
+
+[node name="Sensor" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+
+[node name="Shape" type="CollisionShape2D" parent="Sensor"]
+position = Vector2(0, -2)
+shape = SubResource("RectangleShape2D_sensor")

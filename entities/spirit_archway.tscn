@@ -1,0 +1,71 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://entities/spirit_archway.gd" id="1_arch"]
+[ext_resource type="Texture2D" path="res://art/entities/archway.png" id="2_arch"]
+[ext_resource type="Texture2D" path="res://art/entities/archway_glow.png" id="3_glow"]
+[ext_resource type="Shader" path="res://shaders/portal.gdshader" id="4_portal"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_portal"]
+resource_local_to_scene = true
+shader = ExtResource("4_portal")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_doorway"]
+size = Vector2(60, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall"]
+size = Vector2(208, 4)
+
+[node name="SpiritArchway" type="Node2D"]
+script = ExtResource("1_arch")
+
+[node name="Stone" type="Sprite2D" parent="."]
+z_index = -5
+texture = ExtResource("2_arch")
+centered = false
+offset = Vector2(0, -128)
+
+[node name="Portal" type="ColorRect" parent="." groups=["full_color"]]
+z_index = -4
+material = SubResource("ShaderMaterial_portal")
+offset_left = 32.0
+offset_top = -96.0
+offset_right = 96.0
+mouse_filter = 2
+
+[node name="Motes" type="CPUParticles2D" parent="." groups=["full_color"]]
+z_index = -4
+position = Vector2(64, -40)
+amount = 14
+lifetime = 2.5
+preprocess = 2.5
+emission_shape = 3
+emission_rect_extents = Vector2(24, 36)
+direction = Vector2(0, -1)
+spread = 20.0
+gravity = Vector2(0, -10)
+initial_velocity_min = 3.0
+initial_velocity_max = 8.0
+color = Color(1, 0.7, 0.4, 1)
+
+[node name="Glow" type="Sprite2D" parent="." groups=["full_color"]]
+z_index = -4
+texture = ExtResource("3_glow")
+centered = false
+offset = Vector2(0, -128)
+
+[node name="Doorway" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+
+[node name="Shape" type="CollisionShape2D" parent="Doorway"]
+position = Vector2(66, -24)
+shape = SubResource("RectangleShape2D_doorway")
+
+[node name="BackWall" type="StaticBody2D" parent="."]
+
+[node name="Shape" type="CollisionShape2D" parent="BackWall"]
+position = Vector2(32, -104)
+rotation = 1.5707964
+shape = SubResource("RectangleShape2D_wall")
+one_way_collision = true

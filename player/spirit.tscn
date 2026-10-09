@@ -8,6 +8,7 @@
 shader = ExtResource("3_glow")
 
 [node name="Spirit" type="CharacterBody2D"]
+z_index = 20
 collision_layer = 0
 collision_mask = 17
 motion_mode = 1

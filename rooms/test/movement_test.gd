@@ -78,9 +78,8 @@ func _ready() -> void:
 
 
 func _build() -> void:
-	var tile_size := Vector2(tiles.tile_set.tile_size)
-	var rows := LAYOUT.strip_edges().split("
-")
+	var tile_size := Vector2(terrain.tile_set.tile_size)
+	var rows := LAYOUT.strip_edges().split("\n")
 	for y in rows.size():
 		for x in rows[y].length():
 			var symbol := rows[y][x]
@@ -90,13 +89,13 @@ func _build() -> void:
 				var atlas: Vector2i = TILES[symbol]
 				if symbol == "#" and (x + y) % 2 == 1:
 					atlas = CHECKER_TILE
-				tiles.set_cell(cell, 0, atlas)
+				terrain.set_cell(cell, 0, atlas)
 			elif symbol == "B":
 				_add_at(PUSH_BLOCK.instantiate(), bottom)
 			elif symbol == "E":
 				_add_at(DASH_EMBER.instantiate(), (Vector2(cell) + Vector2(0.5, 0.5)) * tile_size)
 			elif symbol == "P":
-				spawn.position = bottom
+				($Spawns/Start as Marker2D).position = bottom
 	for entry: Array in SIGNS:
 		var label := Label.new()
 		label.text = entry[1]

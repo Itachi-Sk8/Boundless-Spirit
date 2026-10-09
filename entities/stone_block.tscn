@@ -1,0 +1,8 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://entities/push_block.tscn" id="1_block"]
+[ext_resource type="Texture2D" path="res://art/entities/stone_block.png" id="2_stone"]
+
+[node name="StoneBlock" instance=ExtResource("1_block")]
+texture = ExtResource("2_stone")
+texture_region = Rect2(0, 0, 16, 16)

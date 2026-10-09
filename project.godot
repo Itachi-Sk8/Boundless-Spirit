@@ -12,14 +12,15 @@ config_version=5
 
 config/name="Boundless Spirit"
 config/description="A movement-first 2D platformer: a grey spirit wins back its six colors."
-config/version="1.0.3"
-run/main_scene="res://rooms/test/movement_test.tscn"
+config/version="1.0.5"
+run/main_scene="res://game/main.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 
 [autoload]
 
 GameState="*res://game/game_state.gd"
 Settings="*res://game/settings.gd"
+Sfx="*res://game/audio.gd"
 
 [display]
 
@@ -120,6 +121,17 @@ toggle_fullscreen={
 2d_physics/layer_4="spirit_barriers"
 2d_physics/layer_5="push_blocks"
 2d_physics/layer_6="vines"
+
+[shader_globals]
+
+world_color_back={
+"type": "vec4",
+"value": Vector4(0, 0, 0, 0)
+}
+world_color_front={
+"type": "vec4",
+"value": Vector4(0, 0, 0.1, 0)
+}
 
 [rendering]
 

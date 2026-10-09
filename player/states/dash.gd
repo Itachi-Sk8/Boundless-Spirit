@@ -20,6 +20,7 @@ func enter(_previous: StringName) -> void:
 	player.velocity = Vector2.ZERO
 	player.jump_hold_timer = 0.0
 	player.play(&"dash", true)
+	Sfx.play(&"dash")
 
 
 func physics_update(delta: float) -> void:

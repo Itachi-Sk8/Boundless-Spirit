@@ -9,6 +9,7 @@ func enter(_previous: StringName) -> void:
 	_time_left = tuning.death_time
 	player.velocity = Vector2.ZERO
 	player.play(&"death", true)
+	Sfx.play(&"death")
 
 
 func physics_update(delta: float) -> void:

@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://ui/letterbox.gd" id="1_letterbox"]
+
+[node name="Letterbox" type="CanvasLayer"]
+layer = 20
+script = ExtResource("1_letterbox")
+
+[node name="Top" type="ColorRect" parent="."]
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Bottom" type="ColorRect" parent="."]
+mouse_filter = 2
+color = Color(0, 0, 0, 1)

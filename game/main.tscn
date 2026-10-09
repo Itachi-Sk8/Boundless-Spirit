@@ -1,0 +1,74 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://game/main.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://player/player.tscn" id="2_player"]
+[ext_resource type="Script" path="res://game/game_camera.gd" id="3_camera"]
+[ext_resource type="Script" path="res://game/backdrop.gd" id="4_backdrop"]
+[ext_resource type="Texture2D" path="res://art/backgrounds/sky.png" id="5_sky"]
+[ext_resource type="Texture2D" path="res://art/backgrounds/forest_far.png" id="6_far"]
+[ext_resource type="Texture2D" path="res://art/backgrounds/forest_mid.png" id="7_mid"]
+[ext_resource type="Script" path="res://ui/prompt.gd" id="9_prompt"]
+[ext_resource type="PackedScene" path="res://ui/confirm_popup.tscn" id="10_confirm"]
+[ext_resource type="PackedScene" path="res://ui/debug_overlay.tscn" id="11_overlay"]
+[ext_resource type="PackedScene" path="res://ui/letterbox.tscn" id="12_letterbox"]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="World" type="Node2D" parent="."]
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+z_index = 20
+
+[node name="Camera" type="Camera2D" parent="."]
+script = ExtResource("3_camera")
+
+[node name="Backdrop" type="Node2D" parent="Camera"]
+z_index = -100
+z_as_relative = false
+script = ExtResource("4_backdrop")
+
+[node name="Sky" type="Sprite2D" parent="Camera/Backdrop"]
+position = Vector2(-240, -136)
+texture = ExtResource("5_sky")
+centered = false
+
+[node name="Far" type="Sprite2D" parent="Camera/Backdrop"]
+texture_repeat = 2
+texture = ExtResource("6_far")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 1920, 296)
+
+[node name="Mid" type="Sprite2D" parent="Camera/Backdrop"]
+texture_repeat = 2
+texture = ExtResource("7_mid")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 1920, 296)
+
+[node name="Hud" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="Prompt" type="Label" parent="Hud"]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -40.0
+offset_bottom = -24.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.96, 0.88, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_font_sizes/font_size = 8
+horizontal_alignment = 1
+script = ExtResource("9_prompt")
+
+[node name="ConfirmPopup" parent="Hud" instance=ExtResource("10_confirm")]
+
+[node name="DebugOverlay" parent="." node_paths=PackedStringArray("game") instance=ExtResource("11_overlay")]
+game = NodePath("..")
+
+[node name="Letterbox" parent="." instance=ExtResource("12_letterbox")]

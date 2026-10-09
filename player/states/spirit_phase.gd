@@ -18,6 +18,7 @@ func enter(_previous: StringName) -> void:
 	player.add_sibling(_spirit)
 	_spirit.setup(player)
 	player.spirit = _spirit
+	Sfx.play(&"spirit")
 	player.sprite.pause()
 	player.sprite.self_modulate = Color(1.0, 1.0, 1.0, 0.5)
 

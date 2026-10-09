@@ -6,6 +6,9 @@ extends CharacterBody2D
 @export var gravity := 990.0
 @export var max_fall_speed := 480.0
 @export var color := Color(0.55, 0.5, 0.45)
+## Art for the block: a 16×16 region of `texture`. Left empty, it draws a plain box in `color`.
+@export var texture: Texture2D
+@export var texture_region := Rect2(0, 0, 16, 16)
 
 var _start := Vector2.ZERO
 
@@ -36,6 +39,9 @@ func reset_to_start() -> void:
 
 
 func _draw() -> void:
+	if texture:
+		draw_texture_rect_region(texture, Rect2(-8, -16, 16, 16), texture_region)
+		return
 	draw_rect(Rect2(-8, -16, 16, 16), color.darkened(0.4))
 	draw_rect(Rect2(-7, -15, 14, 14), color)
 	draw_rect(Rect2(-5, -13, 10, 10), color.darkened(0.15), false, 1.0)
