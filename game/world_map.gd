@@ -4,6 +4,10 @@ class_name WorldMap
 ## sits (`world_origin`, in tiles) and which region it belongs to. Its size is its terrain
 ## layout's size. Walking off a room's edge enters whichever room covers that spot, so rooms
 ## connect by where they are, not by wiring. Adding a room is just saving a new scene there.
+##
+## Spirit Rooms (`spirit_room` on the root) stand apart: they aren't part of the connected world,
+## so they can be any size. Each loads on its own at the origin (its `world_origin` is ignored),
+## nothing walks in or out of its edges, and the only ways in and out are its gates.
 
 const TILE := 16
 const START_ROOM := &"hollow_clearing"
@@ -11,7 +15,7 @@ const ROOMS_DIR := "res://rooms/"
 ## Folders under rooms/ that aren't part of the world (nor is anything starting with "_").
 const SKIP_DIRS: Array[String] = ["test"]
 const CHECKPOINT_SCENE := "res://entities/checkpoint_stone.tscn"
-const ARCHWAY_SCENE := "res://entities/spirit_archway.tscn"
+const GATE_SCENE := "res://entities/spirit_gate.tscn"
 ## Region ids (Room.region) and the names the map shows for them.
 const REGION_NAMES := {
 	&"hollow": "The Hollow", &"ember_grove": "Ember Grove", &"meadow": "Sunlit Meadow",
@@ -27,7 +31,8 @@ static var _rooms := {}
 ## Every room, by id. Each is a Dictionary: "scene" (path), "origin" and "size" (Vector2i,
 ## tiles), "region" (StringName), "spirit_room" (bool), "rows" (the layout's rows), and
 ## "checkpoints" (checkpoint stone positions in room px), and "doors" (each Spirit Room
-## archway: {"target": the room it leads to, "outside": where to stand outside it, room px}).
+## entrance gate: {"target": the room it leads to, "spot": where the hero stands in its doorway,
+## room px}).
 static func rooms() -> Dictionary:
 	if _rooms.is_empty():
 		for path in _room_scenes(ROOMS_DIR):
@@ -60,10 +65,15 @@ static func region_of(id: StringName) -> StringName:
 	return rooms()[id]["region"] if has_room(id) else &""
 
 
-## The room covering a world point, or &"" if none does.
+## True for a Spirit Room, which stands apart from the connected world.
+static func is_spirit_room(id: StringName) -> bool:
+	return has_room(id) and rooms()[id]["spirit_room"]
+
+
+## The world room covering a world point, or &"" if none does (Spirit Rooms never count).
 static func room_at(point: Vector2) -> StringName:
 	for id: StringName in rooms():
-		if rect_px(id).has_point(point):
+		if not is_spirit_room(id) and rect_px(id).has_point(point):
 			return id
 	return &""
 
@@ -86,20 +96,21 @@ static func room_for_scene(path: String) -> StringName:
 	return &""
 
 
-## The archway leading into room `id`: {"room": the room it stands in, "outside": the world
-## spot just outside it}, or an empty Dictionary if no archway leads there.
+## The entrance gate leading into room `id`: {"room": the room it stands in, "spot": the world
+## spot in its doorway}, or an empty Dictionary if no gate leads there.
 static func door_into(id: StringName) -> Dictionary:
 	for other: StringName in rooms():
 		for door: Dictionary in rooms()[other]["doors"]:
 			if door["target"] == id:
-				return {"room": other, "outside": rect_px(other).position + door["outside"]}
+				return {"room": other, "spot": rect_px(other).position + door["spot"]}
 	return {}
 
 
-## Pairs of rooms that overlap (each a two-item Array of ids): every one is a mistake.
+## Pairs of world rooms that overlap (each a two-item Array of ids): every one is a mistake.
+## Spirit Rooms stand apart, so they never overlap anything.
 static func overlaps() -> Array:
 	var found := []
-	var ids := rooms().keys()
+	var ids := rooms().keys().filter(func(id: StringName) -> bool: return not _rooms[id]["spirit_room"])
 	for i in ids.size():
 		for j in range(i + 1, ids.size()):
 			if rect_px(ids[i]).intersects(rect_px(ids[j])):
@@ -155,8 +166,12 @@ static func _read_room(path: String) -> Dictionary:
 		var instance := state.get_node_instance(i)
 		if instance and instance.resource_path == CHECKPOINT_SCENE:
 			info["checkpoints"].append(offset)
-		elif instance and instance.resource_path == ARCHWAY_SCENE:
-			info["doors"].append(_door(properties, offset))
+		elif instance and instance.resource_path == GATE_SCENE:
+			var door := _door(properties, offset)
+			if not door.is_empty():
+				info["doors"].append(door)
+	if info["spirit_room"]:
+		info["origin"] = Vector2i.ZERO
 	var rows: PackedStringArray = info["rows"]
 	if has_layout and not rows.is_empty():
 		var width := 0
@@ -173,16 +188,15 @@ static func _read_room(path: String) -> Dictionary:
 	return info
 
 
-# Where an archway leads and the spot just outside its opening (as SpiritArchway.outside_x()),
-# from the properties set on it in the room and the script's defaults for the rest.
+# Where an entrance gate leads and the spot in its doorway (its origin), from the properties
+# set on it in the room and the script's defaults for the rest. Empty for an exit gate.
 static func _door(properties: Dictionary, offset: Vector2) -> Dictionary:
-	var script: Script = SpiritArchway
+	var script: Script = SpiritGate
 	var value := func(property: StringName) -> Variant:
 		return properties.get(property, script.get_property_default_value(property))
-	var opening: Vector2i = value.call(&"opening_size")
-	var pillar: int = value.call(&"pillar_width")
-	var outside := offset + Vector2((pillar + opening.x) * TILE + 8, 0)
-	return {"target": StringName(value.call(&"target_room")), "outside": outside}
+	if value.call(&"mode") != SpiritGate.Mode.ENTRANCE:
+		return {}
+	return {"target": StringName(value.call(&"target_room")), "spot": offset}
 
 
 static func _clean(node_path: NodePath) -> String:

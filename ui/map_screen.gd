@@ -2,8 +2,10 @@ class_name MapScreen
 extends CanvasLayer
 ## The map (Tab, or Map in the pause menu): every visited room drawn where it sits in the world,
 ## with its ground in the region's color, the current room outlined, the hero blinking, Spirit
-## Rooms marked with a diamond (filled once cleared), and checkpoint stones as dots. Move pans
-## when the map is bigger than the screen. Tab, Esc, or Back closes it. The game pauses.
+## Room gates marked with a diamond (filled once that Spirit Room is cleared), and checkpoint
+## stones as dots. Spirit Rooms aren't drawn: inside one, the map shows the hero at the gate they
+## came in through. Move pans when the map is bigger than the screen. Tab, Esc, or Back closes
+## it. The game pauses.
 
 signal closed
 
@@ -20,6 +22,8 @@ const HERO := Color(1.0, 1.0, 1.0)
 const MIN_SCALE := 0.35
 const MAX_SCALE := 1.5
 const PAN_SPEED := 200.0
+## A gate's diamond sits this many tiles above its doorway's floor.
+const GATE_HEIGHT_TILES := 4.0
 
 @export var game: Main
 
@@ -94,7 +98,12 @@ func _draw_map() -> void:
 	var area := Rect2(Vector2.ZERO, view.size)
 	var tiles := bounds.size / WorldMap.TILE
 	var scale := clampf(minf(area.size.x / tiles.x, area.size.y / tiles.y), MIN_SCALE, MAX_SCALE)
+	var current: StringName = game.room.room_id if game.room else &""
 	var hero_tile := game.player.global_position / WorldMap.TILE
+	if WorldMap.is_spirit_room(current):
+		var back := game.spirit_return()
+		current = back.get("room", &"")
+		hero_tile = back.get("spot", Vector2.ZERO) / WorldMap.TILE
 	# Center on everything visited when it fits, otherwise on the hero; panning moves from there.
 	var center := bounds.get_center() / WorldMap.TILE
 	if tiles.x * scale > area.size.x or tiles.y * scale > area.size.y:
@@ -103,7 +112,6 @@ func _draw_map() -> void:
 	_pan = _pan.clamp(-span, span)
 	var offset := area.get_center() - center * scale - _pan
 
-	var current: StringName = game.room.room_id if game.room else &""
 	for id: StringName in visited:
 		var info: Dictionary = WorldMap.rooms()[id]
 		var rect := Rect2(Vector2(info["origin"]) * scale + offset, Vector2(info["size"]) * scale)
@@ -113,8 +121,9 @@ func _draw_map() -> void:
 		view.draw_rect(rect, INK if id != current else HERO, false, 1.0 if id != current else 1.5)
 		for checkpoint: Vector2 in info["checkpoints"]:
 			view.draw_circle(rect.position + checkpoint / WorldMap.TILE * scale, 1.5, Color(0.95, 0.9, 0.7))
-		if info["spirit_room"]:
-			_draw_diamond(rect.get_center(), 4.0, color, GameState.best_time(id) != INF)
+		for door: Dictionary in info["doors"]:
+			var gate: Vector2 = door["spot"] / WorldMap.TILE - Vector2(0, GATE_HEIGHT_TILES)
+			_draw_diamond(rect.position + gate * scale, 4.0, color, GameState.best_time(door["target"]) != INF)
 	if current != &"" and fmod(_time, 0.8) < 0.55:
 		view.draw_circle(hero_tile * scale + offset - Vector2(0, scale), 2.5, HERO)
 
@@ -131,6 +140,8 @@ func _draw_diamond(center: Vector2, radius: float, color: Color, filled: bool) -
 func _visited_rooms() -> Array[StringName]:
 	var found: Array[StringName] = []
 	for id: StringName in WorldMap.rooms():
+		if WorldMap.is_spirit_room(id):
+			continue
 		if GameState.has_visited(id) or (game.room and game.room.room_id == id):
 			found.append(id)
 	return found

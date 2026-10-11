@@ -128,14 +128,31 @@ hiding hazards, and make sure safe ground looks safe.
 
 1. Build the room as above and tick **Spirit Room** on its root. It has no checkpoints, the
    run is timed, and every death restarts it at **Start**.
-2. Put a `color_orb` at the end and set its `color` (0 orange, 1 yellow, 2 green, 3 red,
+2. A Spirit Room stands apart from the world, so make it any size: its **World Origin** is
+   ignored, nothing joins its edges (they're walls, and falling out is a death), and it isn't
+   on the map or in the World View. Open its own scene to see it.
+3. Put a `color_orb` at the end and set its `color` (0 orange, 1 yellow, 2 green, 3 red,
    4 purple, 5 blue).
-3. In the room outside, place a `spirit_archway` (from `entities/`) on the ground, origin at its
-   bottom-left. Set its **Target Room** to the Spirit Room's id and **Target Spawn** to
-   `Start`. Its size and colors are in its Inspector; right-click it → **Editable Children** to
-   move or recolor single runes. The pause menu's **Leave Spirit Room** takes the hero back
-   outside this archway.
-4. Leave the Spirit Room by a different way than the entrance, often as a shortcut home.
+4. In the room outside, place a `spirit_gate` (from `entities/`) on the ground, origin at the
+   bottom center of its doorway. Leave **Mode** on Entrance, set **Target Room** to the Spirit
+   Room's id and **Target Spawn** to `Start`. The player stands in the doorway and presses
+   Interact (C, or the right bumper).
+5. Inside, place another `spirit_gate` near the orb and set **Mode** to Exit. It stays dark until
+   the color is taken, then takes the hero back to the gate they came in through. The pause
+   menu's **Leave Spirit Room** goes to the same place at any time.
+
+**Changing the gate's look**
+
+- **The stone** is one image: `art/gate/spirit_gate.png` (128×128 px). It's yours to repaint,
+  and the art build script never touches `art/gate/`. If you redraw it at another size, set the
+  gate's **Opening** (the doorway's rectangle in the image, in px from its top-left corner) so
+  the portal and the trigger follow. **Stone Tint** recolors it without repainting.
+- **The runes** are separate: right-click the gate → **Editable Children**, then move a Rune
+  under `Runes`, change its **Glyph** (0–23, from `art/gate/runes.png`, 8 per row), or tick
+  **Own Color** to give it its own color. Draw new glyphs in `art/gate/runes.png` (16×16 each),
+  or point the gate's **Glyph Sheet** at another sheet.
+- **The colors:** **Rune Color**, **Portal Color**, **Portal Speed**, and **Motes Color** in the
+  gate's Inspector.
 
 ## Good to know
 

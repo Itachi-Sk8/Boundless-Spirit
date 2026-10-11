@@ -3,11 +3,11 @@ extends Node2D
 ## The whole world in the editor: every room drawn where the game puts it, outlined and
 ## labeled, so you can see how rooms line up and where a new one fits. Overlapping rooms are
 ## outlined in red. Open rooms/_world_view.tscn; press Refresh after saving a room. Nothing
-## here is saved: it only shows the room scenes.
+## here is saved: it only shows the room scenes. Spirit Rooms stand apart from the world, so they
+## aren't shown here: open their own scenes.
 
 const TILE := 16
 const OUTLINE := Color(1.0, 0.9, 0.4, 0.9)
-const SPIRIT_OUTLINE := Color(0.95, 0.55, 0.22, 1.0)
 const OVERLAP := Color(1.0, 0.15, 0.15, 1.0)
 
 ## Reread the room scenes and redraw them.
@@ -32,6 +32,8 @@ func refresh() -> void:
 	WorldMap.reload()
 	if show_rooms:
 		for id: StringName in WorldMap.rooms():
+			if WorldMap.is_spirit_room(id):
+				continue
 			var room: Node2D = (load(WorldMap.scene_of(id)) as PackedScene).instantiate()
 			room.position = WorldMap.rect_px(id).position
 			room.set_meta(&"world_view", true)
@@ -46,10 +48,10 @@ func _draw() -> void:
 		overlapping[pair[1]] = true
 	var font := ThemeDB.fallback_font
 	for id: StringName in WorldMap.rooms():
+		if WorldMap.is_spirit_room(id):
+			continue
 		var rect := WorldMap.rect_px(id)
 		var color := OUTLINE
-		if WorldMap.rooms()[id]["spirit_room"]:
-			color = SPIRIT_OUTLINE
 		if overlapping.has(id):
 			color = OVERLAP
 		draw_rect(rect, color, false, 2.0)

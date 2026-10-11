@@ -28,6 +28,10 @@ var best_times := {}
 var clear_deaths := {}
 ## Rooms the hero has been in, by id (the map shows only these).
 var visited := {}
+## The gate the hero entered the current Spirit Room through, where leaving it goes back to: its
+## room id (&"" when not in one) and the spot in its doorway, in world pixels.
+var spirit_return_room: StringName = &""
+var spirit_return_spot := Vector2.ZERO
 ## Set when a room scene is run on its own (F6) so the game starts in it.
 var pending_room_scene := ""
 
@@ -120,6 +124,8 @@ func new_game(for_slot := slot) -> void:
 	visited = {}
 	best_times = {}
 	clear_deaths = {}
+	spirit_return_room = &""
+	spirit_return_spot = Vector2.ZERO
 	_colors = [false, false, false, false, false, false]
 	colors_changed.emit()
 	deaths_changed.emit()
@@ -139,6 +145,7 @@ func save_game() -> void:
 		"visited": visited,
 		"best_times": best_times,
 		"clear_deaths": clear_deaths,
+		"spirit_return": [String(spirit_return_room), spirit_return_spot.x, spirit_return_spot.y],
 	}
 	var file := FileAccess.open(save_path(), FileAccess.WRITE)
 	if file:
@@ -165,6 +172,9 @@ func load_game(for_slot := slot) -> bool:
 	visited = data.get("visited", {})
 	best_times = data.get("best_times", {})
 	clear_deaths = data.get("clear_deaths", {})
+	var back: Array = data.get("spirit_return", ["", 0, 0])
+	spirit_return_room = StringName(back[0])
+	spirit_return_spot = Vector2(back[1], back[2])
 	colors_changed.emit()
 	deaths_changed.emit()
 	return true

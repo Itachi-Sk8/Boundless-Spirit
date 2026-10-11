@@ -20,7 +20,7 @@
 
 [node name="EmberEntry" type="Node2D"]
 script = ExtResource("1")
-world_origin = Vector2i(90, 0)
+world_origin = Vector2i(137, 0)
 region = "ember_grove"
 
 [node name="Props" type="Node2D" parent="."]

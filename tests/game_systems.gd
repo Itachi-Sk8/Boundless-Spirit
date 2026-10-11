@@ -1,6 +1,7 @@
 extends Node
 ## Checks the game's systems through the real game scene: the world map matches the rooms,
-## checkpoints set the respawn point, Spirit Rooms restart from their start and count deaths,
+## checkpoints set the respawn point, Spirit Rooms stand apart from the world, their gates take
+## the hero in and back out, and they restart from their start and count deaths,
 ## crumbling ledges and leaves behave and reset, region color follows the colors, and saves
 ## round-trip. Uses save slot 9 and deletes it afterwards.
 ##
@@ -50,7 +51,14 @@ func test_world_map() -> void:
 			and not WorldMap.has_room(&"room_template") and not WorldMap.has_room(&"gallery"), str(WorldMap.rooms().keys()))
 	check("the Spirit Room is known from its scene, with no checkpoints", WorldMap.rooms()[&"ember_spirit_room"]["spirit_room"]
 			and WorldMap.rooms()[&"ember_spirit_room"]["checkpoints"].is_empty(), "")
-	check("checkpoint stones are read from the room scenes", not WorldMap.rooms()[&"hollow_east"]["checkpoints"].is_empty(), "")
+	check("checkpoint stones are read from the room scenes", not WorldMap.rooms()[&"ember_entry"]["checkpoints"].is_empty(), "")
+	var spirit := WorldMap.rect_px(&"ember_spirit_room")
+	check("the Spirit Room stands apart: at the origin, its own size, and no room walks into it",
+			spirit.position == Vector2.ZERO and WorldMap.room_at(spirit.get_center()) != &"ember_spirit_room"
+			and WorldMap.is_spirit_room(&"ember_spirit_room"), str(spirit))
+	var door := WorldMap.door_into(&"ember_spirit_room")
+	check("the entrance gate in Ember Gate is read as the way in", door.get("room") == &"ember_gate"
+			and door["spot"] == WorldMap.rect_px(&"ember_gate").position + Vector2(66, 208), str(door))
 	for id: StringName in WorldMap.rooms():
 		var info: Dictionary = WorldMap.rooms()[id]
 		var room: Room = load(info["scene"]).instantiate()
@@ -67,23 +75,23 @@ func test_world_map() -> void:
 
 
 func test_checkpoint_respawn() -> void:
-	main._enter_world_room(&"hollow_east", Vector2(1192, 160))
+	main._enter_world_room(&"ember_entry", Vector2(2760, 240))
 	await frames(5)
 	check("touching a checkpoint stone lights it", _lit_checkpoints() == 1, "")
 	hero.die()
 	await until(func() -> bool: return hero.state_name == &"idle", 60)
-	check("dying after a checkpoint respawns at the checkpoint", hero.global_position.distance_to(Vector2(1192, 160)) < 2.0,
+	check("dying after a checkpoint respawns at the checkpoint", hero.global_position.distance_to(Vector2(2760, 240)) < 2.0,
 			str(hero.global_position))
-	main._enter_world_room(&"hollow_east", Vector2(680, 240))
+	main._enter_world_room(&"ember_entry", Vector2(2232, 160))
 	await frames(5)
 	hero.die()
 	await until(func() -> bool: return hero.state_name == &"idle", 60)
-	check("re-entering a room forgets its checkpoint", hero.global_position.x < 700.0, str(hero.global_position))
+	check("re-entering a room forgets its checkpoint", hero.global_position.x < 2300.0, str(hero.global_position))
 
 
 func test_spirit_room_restart() -> void:
 	GameState.set_color(GameState.SpiritColor.ORANGE, false)
-	main._enter_world_room(&"ember_spirit_room", Vector2(2450, -64))
+	main._enter_world_room(&"ember_spirit_room", Vector2.INF)
 	await frames(30)
 	check("a Spirit Room run is timed", main._run_active and main._run_time > 0.3, "%.2f s" % main._run_time)
 	var deaths := GameState.deaths
@@ -97,7 +105,7 @@ func test_spirit_room_restart() -> void:
 
 
 func test_crumble_platform() -> void:
-	main._enter_world_room(&"hollow_east", Vector2(1300, 160))
+	main._enter_world_room(&"hollow_east", Vector2(1672, 160))
 	await frames(2)
 	var crumble: CrumblePlatform = main.room.find_children("*", "CrumblePlatform", true, false)[0]
 	await until(func() -> bool: return crumble.phase == CrumblePlatform.Phase.GONE, 60)
@@ -105,7 +113,7 @@ func test_crumble_platform() -> void:
 	hero.die()
 	await until(func() -> bool: return hero.state_name == &"idle", 60)
 	check("dying puts the crumbling ledge back", crumble.phase == CrumblePlatform.Phase.SOLID, "")
-	main._enter_world_room(&"hollow_east", Vector2(1192, 160))
+	main._enter_world_room(&"hollow_east", Vector2(1860, 160))
 	await frames(2)
 	crumble = main.room.find_children("*", "CrumblePlatform", true, false)[0]
 	crumble.phase = CrumblePlatform.Phase.GONE
@@ -115,9 +123,9 @@ func test_crumble_platform() -> void:
 
 
 func test_sinking_leaf() -> void:
-	main._enter_world_room(&"ember_leaves", Vector2(2424, 230))
+	main._enter_world_room(&"ember_leaves", Vector2(3176, 230))
 	await frames(2)
-	var leaf: SinkingLeaf = _nearest(main.room.find_children("*", "SinkingLeaf", true, false), Vector2(2424, 240))
+	var leaf: SinkingLeaf = _nearest(main.room.find_children("*", "SinkingLeaf", true, false), Vector2(3176, 240))
 	var top := leaf.global_position.y
 	await until(func() -> bool: return leaf.global_position.y > top + 0.5, 60)
 	var landed_at := leaf.global_position.y
@@ -125,13 +133,13 @@ func test_sinking_leaf() -> void:
 	var sunk := leaf.global_position.y - landed_at
 	check("a lily pad sinks twice as fast under the hero (56 px/s: about 28 px in half a second)",
 			absf(sunk - 28.0) < 3.0, "%.1f px" % sunk)
-	hero.respawn(Vector2(2300, 240), true)
+	hero.respawn(Vector2(3052, 240), true)
 	await frames(90)
 	check("a lily pad floats back up when left", absf(leaf.global_position.y - top) < 1.0,
 			"%.1f px" % (leaf.global_position.y - top))
 	check("the lily pad room has no checkpoint", main.room.find_children("*", "CheckpointStone", true, false).is_empty(), "")
 	var deaths := GameState.deaths
-	hero.respawn(Vector2(2424, 230), true)
+	hero.respawn(Vector2(3176, 230), true)
 	await until(func() -> bool: return GameState.deaths > deaths, 240)
 	check("standing on a lily pad too long sinks you into the pit", GameState.deaths == deaths + 1, "")
 	var back := await until(func() -> bool: return absf(leaf.global_position.y - top) < 4.0, 10)
@@ -139,7 +147,7 @@ func test_sinking_leaf() -> void:
 	await frames(40)
 	check("the lily pad snapping back doesn't fling the hero", main.room.room_id == &"ember_leaves"
 			and hero.global_position.y > 200.0, "%s at %s" % [main.room.room_id, hero.global_position])
-	main._enter_world_room(&"ember_leaves", Vector2(2648, 208))
+	main._enter_world_room(&"ember_leaves", Vector2(3400, 208))
 	await frames(2)
 	hero.velocity.y = -900.0
 	hero.change_state(&"jump")
@@ -176,6 +184,8 @@ func test_world_color_cascade() -> void:
 	check("the world starts grey, spikes at 10%", _shown(0, 0.0) and _shown(5, 0.0) and _shown(6, 0.1), str(main._shown_color))
 	var props := main.room.get_node(^"Props").get_child(0) as CanvasItem
 	check("trees behind the ground are on the trees layer", _layer_of(props) == WorldColor.Layer.TREES, "")
+	main._enter_world_room(&"hollow_east", Vector2(1000, 240))
+	await frames(2)
 	var terrain := main.room.get_node(^"Terrain") as TerrainLayout
 	var thorns := main.room.get_node(^"Hazards").get_child(0) as Thorns
 	check("the ground is on the ground layer and thorns on the hazards layer",
@@ -185,10 +195,10 @@ func test_world_color_cascade() -> void:
 	await frames(2)
 	check("with orange the sky is full color, far hills 20%, near forest 10%",
 			_shown(0, 1.0) and _shown(1, 0.2) and _shown(2, 0.1) and _shown(3, 0.0), str(main._shown_color))
-	main._enter_world_room(&"ember_entry", Vector2(1500, 160))
+	main._enter_world_room(&"ember_entry", Vector2(2252, 160))
 	await frames(2)
 	check("the color stays in other rooms", _shown(0, 1.0) and _shown(1, 0.2), str(main._shown_color))
-	main._enter_world_room(&"ember_spirit_room", Vector2(2450, -64))
+	main._enter_world_room(&"ember_spirit_room", Vector2.INF)
 	await frames(2)
 	GameState.new_game(SLOT)
 	GameState.load_game(SLOT)
@@ -208,10 +218,10 @@ func test_world_color_cascade() -> void:
 
 
 func test_thorns() -> void:
-	main._enter_world_room(&"hollow_clearing", Vector2(88, 240))
+	main._enter_world_room(&"hollow_east", Vector2(1000, 240))
 	await frames(2)
 	var thorns := main.room.get_node(^"Hazards").get_child(0) as Thorns
-	check("a Thorns row's hurt area spans its length", thorns.hurt_rect() == Rect2(2, 7, thorns.length * 16 - 4, 9),
+	check("a Thorns row's hurt area spans its length", thorns.hurt_rect() == Rect2(2, 7, thorns.length * 16 - 4 + thorns.adjust_px, 9),
 			str(thorns.hurt_rect()))
 	var deaths := GameState.deaths
 	hero.global_position = thorns.global_position + Vector2(thorns.length * 8.0, -4.0)
@@ -220,52 +230,80 @@ func test_thorns() -> void:
 	await until(func() -> bool: return hero.state_name != &"dead" and not hero.frozen, 240)
 	thorns.direction = Thorns.Direction.LEFT
 	thorns.length = 3
-	check("turned left and stretched to 3, it runs downward", thorns.hurt_rect() == Rect2(7, 2, 9, 44), str(thorns.hurt_rect()))
+	check("turned left and stretched to 3, it runs downward", thorns.hurt_rect() == Rect2(7, 2, 9, 44 + thorns.adjust_px), str(thorns.hurt_rect()))
 	thorns.direction = Thorns.Direction.UP
 	thorns.length = 2
 
 
 func test_spirit_door() -> void:
 	GameState.set_color(GameState.SpiritColor.ORANGE, false)
-	main._enter_world_room(&"ember_gate", Vector2(2720, -64))
+	main._enter_world_room(&"ember_gate", Vector2(3472, -64))
 	await frames(3)
-	var door: SpiritArchway = main.room.find_children("*", "SpiritArchway", true, false)[0]
+	var gate: SpiritGate = main.room.find_children("*", "SpiritGate", true, false)[0]
+	check("the gate is one stone image with 7 runes, and a portal filling its doorway", gate.stone.texture != null
+			and gate.runes.get_child_count() == 7 and gate.portal.size == Vector2(64, 96)
+			and gate.portal.position == Vector2(-32, -96), "%s %s" % [gate.portal.position, gate.portal.size])
 	Input.action_press(&"move_left")
-	var asked := await until(func() -> bool: return main.confirm.visible, 300)
+	var shown := await until(func() -> bool: return gate.hint.visible, 300)
 	Input.action_release(&"move_left")
-	check("walking into the door asks if you're ready", asked, str(hero.global_position))
+	await frames(20)
+	check("standing in the doorway shows the Interact key", shown and gate.hint.visible and gate.hint.text == "C", gate.hint.text)
+	check("  and walking in doesn't ask by itself", not main.confirm.visible, "")
+	await press(&"interact")
+	var asked := await until(func() -> bool: return main.confirm.visible, 30)
+	check("pressing Interact in the doorway asks if you're ready", asked, str(hero.global_position))
 	check("  with the hero held still while it asks", hero.frozen, "")
-	check("the gate is built from parts: stone, 8 runes, portal, motes", door.stone is ArchwayStone
-			and door.runes.get_child_count() == 8 and door.portal.size == Vector2(64, 96), str(door.portal.size))
 	await frames(3)
-	Input.action_press(&"ui_cancel")
-	await frames(2)
-	Input.action_release(&"ui_cancel")
+	await press(&"ui_cancel")
 	await frames(3)
-	check("No closes it and leaves the hero outside the door", not main.confirm.visible
-			and main.room.room_id == &"ember_gate" and absf(hero.global_position.x - door.outside_x()) < 2.0 and not hero.frozen,
-			"%s at %s" % [main.room.room_id, hero.global_position])
-	Input.action_press(&"move_left")
-	asked = await until(func() -> bool: return main.confirm.visible, 120)
-	Input.action_release(&"move_left")
-	check("walking back in asks again", asked, "")
+	check("No closes it and leaves the hero at the gate", not main.confirm.visible
+			and main.room.room_id == &"ember_gate" and not hero.frozen, str(main.room.room_id))
+	await press(&"interact")
+	asked = await until(func() -> bool: return main.confirm.visible, 30)
+	check("pressing Interact again asks again", asked, "")
 	await frames(3)
 	for action: StringName in [&"move_right", &"jump"]:
-		Input.action_press(action)
-		await frames(2)
-		Input.action_release(action)
-		await frames(2)
+		await press(action)
+		await frames(1)
+	await frames(3)
 	check("picking No with right then jump also stays outside", main.room.room_id == &"ember_gate"
 			and not main.confirm.visible, str(main.room.room_id))
-	main._enter_world_room(&"ember_spirit_room", Vector2(2540, -64))
+	var doorway := gate.global_position
+	await press(&"interact")
+	await until(func() -> bool: return main.confirm.visible, 30)
 	await frames(3)
+	await press(&"jump")
+	var entered := await until(func() -> bool: return main.room.room_id == &"ember_spirit_room" and not main.transitioning, 120)
+	check("Yes enters the Spirit Room at its start", entered
+			and hero.global_position.distance_to(main.room.named_spawn(&"Start")) < 2.0, str(hero.global_position))
+	check("  remembering the gate it came in through", GameState.spirit_return_room == &"ember_gate"
+			and GameState.spirit_return_spot == doorway, "%s %s" % [GameState.spirit_return_room, GameState.spirit_return_spot])
+	await frames(10)
 	Input.action_press(&"move_right")
-	await until(func() -> bool: return main.room.room_id == &"ember_gate" and not main.transitioning, 240)
-	await frames(30)
+	await frames(60)
 	Input.action_release(&"move_right")
-	door = main.room.find_children("*", "SpiritArchway", true, false)[0]
-	check("walking out of the Spirit Room through the door never asks, and passes it",
-			not main.confirm.visible and hero.global_position.x > door.outside_x(), str(hero.global_position))
+	check("a Spirit Room's edge is a wall: walking off it goes nowhere", main.room.room_id == &"ember_spirit_room"
+			and not main.transitioning and hero.global_position.x <= main.room.world_bounds().end.x, str(hero.global_position))
+	# An exit gate, placed where the hero stands.
+	var exit: SpiritGate = load("res://entities/spirit_gate.tscn").instantiate()
+	exit.mode = SpiritGate.Mode.EXIT
+	main.room.add_child(exit)
+	exit.global_position = hero.global_position
+	await frames(3)
+	check("an exit gate stays dark during the run", main.is_spirit_run() and not exit.is_open()
+			and not exit.portal.visible and exit.hint.visible, "")
+	await press(&"interact")
+	await frames(5)
+	check("  and Interact there doesn't leave yet, but says why", main.room.room_id == &"ember_spirit_room"
+			and main.prompt.text == SpiritGate.LOCKED_MESSAGE, main.prompt.text)
+	main._run_active = false  # As taking the room's color does.
+	await frames(2)
+	check("once the color is taken it opens", exit.is_open() and exit.portal.visible, "")
+	await press(&"interact")
+	var left := await until(func() -> bool: return main.room.room_id == &"ember_gate" and not main.transitioning, 120)
+	check("Interact at the open exit goes back to the gate the hero came in through", left
+			and hero.global_position.distance_to(doorway) < 2.0, "%s at %s" % [main.room.room_id, hero.global_position])
+	check("  and forgets it", GameState.spirit_return_room == &"", str(GameState.spirit_return_room))
 
 
 func test_menus() -> void:
@@ -312,34 +350,42 @@ func test_menus() -> void:
 	check("Tab opens the map on its own", main.map_screen.is_open and get_tree().paused, "")
 	check("  showing the rooms visited", main.map_screen._visited_rooms().has(&"ember_gate")
 			and main.map_screen._visited_rooms().has(&"hollow_clearing"), str(main.map_screen._visited_rooms()))
+	check("  but not Spirit Rooms, which stand apart", not main.map_screen._visited_rooms().has(&"ember_spirit_room"), "")
 	await press(&"map")
 	check("  and Tab closes it", not main.map_screen.is_open and not get_tree().paused, "")
 	main._enter_world_room(&"ember_spirit_room", Vector2.INF)
 	await frames(3)
+	await press(&"map")
+	check("the map opens inside a Spirit Room too", main.map_screen.is_open, "")
+	await press(&"map")
 	await press(&"pause")
 	# Rows: Resume, Map, Settings, Leave Spirit Room, Quit.
 	for i in 3:
 		await press(&"move_down")
 	await press(&"ui_accept")
 	await until(func() -> bool: return main.room.room_id == &"ember_gate" and not main.transitioning, 120)
-	var door: SpiritArchway = main.room.find_children("*", "SpiritArchway", true, false)[0]
-	check("Leave Spirit Room puts the hero outside its archway", main.room.room_id == &"ember_gate"
-			and absf(hero.global_position.x - door.outside_x()) < 2.0 and not get_tree().paused, str(hero.global_position))
+	var gate: SpiritGate = main.room.find_children("*", "SpiritGate", true, false)[0]
+	check("Leave Spirit Room puts the hero back at its gate", main.room.room_id == &"ember_gate"
+			and hero.global_position.distance_to(gate.global_position) < 2.0 and not get_tree().paused, str(hero.global_position))
 
 
 func test_save_round_trip() -> void:
 	GameState.set_color(GameState.SpiritColor.ORANGE, true)
 	GameState.set_flag(&"hollow_shortcut")
 	GameState.record_time(&"ember_spirit_room", 42.5)
-	main._enter_world_room(&"ember_leaves", Vector2(2300, 240))
+	GameState.spirit_return_room = &"ember_gate"
+	GameState.spirit_return_spot = Vector2(3378, -64)
+	main._enter_world_room(&"ember_leaves", Vector2(3052, 240))
 	await frames(2)
 	GameState.new_game(SLOT)
 	var loaded := GameState.load_game(SLOT)
 	check("a save loads back", loaded, "")
 	check("it remembers the room and spot", GameState.room_id == &"ember_leaves"
-			and GameState.respawn_position.distance_to(Vector2(2300, 240)) < 1.0, "%s %s" % [GameState.room_id, GameState.respawn_position])
+			and GameState.respawn_position.distance_to(Vector2(3052, 240)) < 1.0, "%s %s" % [GameState.room_id, GameState.respawn_position])
 	check("it remembers colors, shortcuts, and best times", GameState.has_color(GameState.SpiritColor.ORANGE)
 			and GameState.has_flag(&"hollow_shortcut") and is_equal_approx(GameState.best_time(&"ember_spirit_room"), 42.5), "")
+	check("it remembers the gate to go back to", GameState.spirit_return_room == &"ember_gate"
+			and GameState.spirit_return_spot == Vector2(3378, -64), "%s %s" % [GameState.spirit_return_room, GameState.spirit_return_spot])
 
 
 # --- Harness -------------------------------------------------------------------------------

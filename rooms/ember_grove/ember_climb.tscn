@@ -17,7 +17,7 @@
 
 [node name="EmberClimb" type="Node2D"]
 script = ExtResource("1")
-world_origin = Vector2i(190, -17)
+world_origin = Vector2i(237, -17)
 region = "ember_grove"
 
 [node name="Props" type="Node2D" parent="."]

@@ -157,10 +157,11 @@ A Spirit Room is one continuous challenge that must be cleared in a single run: 
 **Rules**
 
 - **Six on the main path,** one per color region, plus hidden bonus rooms (see Difficulty and optional content).
-- **The entrance** is a stone archway whose carved runes and doorway glow in the color waiting inside. It's the only way in: walking into the doorway asks "Are you ready to challenge your Spirit?" Yes enters at the room's start; No leaves the player outside. Walking back out never asks.
+- **The entrance** is a stone gate whose carved runes and portal glow in the color waiting inside. It's the only way in: standing in its doorway and pressing Interact (C / RB) asks "Are you ready to challenge your Spirit?" Yes enters at the room's start; No leaves the player where they are.
+- **A room of its own.** A Spirit Room isn't part of the connected world: it can be any size, nothing joins its edges, and the map marks its gate rather than drawing the room.
 - **No checkpoints.** Death restarts the room instantly from the start.
 - **Length:** 45–90 seconds for a clean run. The room scrolls like any other.
-- **Leaving is allowed** through the entrance or the pause menu; the room resets.
+- **Leaving** goes back to the gate the player came in through, and the room resets. The room's exit gate stays dark until its color is taken; the pause menu's Leave Spirit Room works at any time.
 - **No collectibles inside,** so a clean run is the only goal.
 - **The run is recorded quietly:** its time (best kept) and deaths are saved for later, with no card interrupting the moment.
 
@@ -176,7 +177,7 @@ A Spirit Room is one continuous challenge that must be cleared in a single run: 
 
 - The color floats at the end of the room; touching it ends the run.
 - The player lands first (controls off), then the color flows into its body part, the ability's button prompt appears, and the world's color cascades a layer forward.
-- The exit leads out a different way than the entrance, often as a shortcut toward the Hollow.
+- The exit gate, near the color, takes the player back out to the gate they entered by. Shortcuts toward the Hollow belong to the regions, not to Spirit Rooms.
 
 ## Death, checkpoints, and saving
 
@@ -261,6 +262,7 @@ The screen stays clean: a scrolling camera, no HUD during play, and the hero's b
 | Slide | K | B |
 | Grab (push, pull, climb) | L | Right trigger |
 | Spirit Phase | I | Y |
+| Interact (gates) | C | Right bumper |
 | Map | Tab | View / Back |
 | Pause | Esc | Menu / Start |
 
@@ -268,7 +270,7 @@ The screen stays clean: a scrolling camera, no HUD during play, and the hero's b
 
 - **The body is the HUD.** A body part glows in its color when its ability is ready and dims once used, the way Madeline's hair changes color in Celeste. This covers dash, double jump, and Spirit Phase.
 - **Pause menu:** resume, map, settings, leave Spirit Room, quit.
-- **Map:** visited rooms drawn as simple blocks, with Spirit Rooms and checkpoints marked.
+- **Map:** visited rooms drawn as simple blocks, with Spirit Room gates and checkpoints marked.
 - **Title screen:** three save slots.
 - **Settings:** music and sound volume, control remapping, fullscreen and window size, screen shake on or off, speedrun timer on or off.
 
@@ -469,6 +471,28 @@ the way, open to change after @Ben tries them:
     thorns kill on contact. It stays 2 px smaller than the art at the sides and feet.
 - **Gallery** (F3, then F10): every hazard, object, and creature in one room, used by the
   automated hazard tests too.
+
+### Spirit Room gates (v1.0.15)
+
+Decided Oct 10, 2026, with @Ben's bigger Ember Spirit Room (180 tiles wide):
+
+- **Spirit Rooms stand apart from the world.** Each loads on its own, so it can be any size
+  without moving other rooms. Its World Origin is ignored, nothing joins its edges (they're
+  walls; falling out is a death), and the map and World View leave it out. The map marks the
+  entrance gate with the diamond instead (filled once cleared).
+- **Gates use a button.** Standing in a gate's doorway shows the Interact key (C, right bumper
+  on a gamepad); pressing it asks the question. Walking in no longer asks by itself.
+- **One gate, two modes.** The entrance gate leads in. The exit gate inside leads back to the
+  gate the player entered by (saved, in case they quit mid-run); it stays dark until the room's
+  color is taken. The pause menu's Leave Spirit Room goes to the same place at any time.
+- **The gate is one image** (`art/gate/spirit_gate.png`, 128×128) that @Ben can repaint, with
+  the portal glowing behind its doorway and the runes drawn on top. Rune glyphs, rune color,
+  portal color and speed, mote color, and a stone tint are set per gate. It replaces the
+  archway built from rock tiles.
+- **The Hollow shortcut is gone for now.** The old Spirit Room dropped down a shaft into Hollow
+  East's shortcut chamber; with gates leading back where they came from, nothing reached it, so
+  the shaft and chamber are solid rock and the shortcut gate was removed from that room. The
+  walk home from Ember Gate is long until a region shortcut is designed.
 
 ## Open questions
 

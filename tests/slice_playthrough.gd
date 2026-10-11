@@ -1,7 +1,9 @@
 extends Node
 ## Plays the whole vertical slice start to finish through the real game, like a careful player:
-## the Hollow, Ember Grove, the Spirit Room and its orange unlock, the shortcut gate, and the
-## dash across the Hollow's gap to the end room. Fails at the first segment it can't clear.
+## the Hollow, Ember Grove, the Spirit Room's gate, the orange unlock, leaving back through the
+## gate, and the dash across the Hollow's gap to the end room. Fails at the first segment it
+## can't clear. For now it skips the Spirit Room's run (it steps straight to the orb, until the
+## room settles) and the walk home from Ember Gate (it starts again at the Hollow clearing).
 ## Uses save slot 9 and deletes it afterwards.
 ##
 ## Run from the repo root:
@@ -11,7 +13,7 @@ extends Node
 const SLOT := 9
 const ACTIONS: Array[StringName] = [
 	&"move_left", &"move_right", &"move_up", &"move_down", &"jump", &"dash", &"slide",
-	&"grab", &"spirit",
+	&"grab", &"spirit", &"interact", &"pause", &"ui_accept",
 ]
 
 var main: Main
@@ -34,7 +36,7 @@ func _run() -> void:
 	await frames(10)
 	var segments: Array[Callable] = [
 		hollow_clearing_east, hollow_east_push_and_crumble, ember_entry, ember_leaves, ember_climb,
-		ember_gate, spirit_room, shortcut_home, dash_gap, meadow_end,
+		ember_gate, spirit_room, leave_spirit_room, back_to_the_hollow, dash_gap, meadow_end,
 	]
 	for segment in segments:
 		if _aborted:
@@ -54,15 +56,7 @@ func _run() -> void:
 
 func hollow_clearing_east() -> void:
 	check("starts in the Hollow clearing", main.room.room_id == &"hollow_clearing", str(main.room.room_id))
-	# Over the thorns, wherever they are on the clearing's floor (moved and resized in the editor).
-	var thorns := main.room.get_node(^"Hazards").get_child(0) as Thorns
-	var hurt := thorns.get_global_transform() * thorns.hurt_rect()
-	await run_to(hurt.position.x - 40.0)
-	await leap(hurt.end.x + 22.0, 240.0, "over the thorns")
-	await run_to(325.0)
-	await leap(390.0, 208.0, "up onto the ledge")
-	await run_to(436.0)
-	await leap(540.0, 240.0, "over the pit")
+	# The clearing is open, flat ground: just run east.
 	await run_until_room(&"hollow_east", 1.0)
 
 
@@ -71,33 +65,33 @@ func hollow_east_push_and_crumble() -> void:
 	_hold(&"move_right")
 	await until(func() -> bool: return hero.adjacent_block(1) == block, 240)
 	_hold(&"grab")
-	await until(func() -> bool: return block.global_position.x >= 1111.0, 600)
+	await until(func() -> bool: return block.global_position.x >= 1431.0, 600)
 	_release_all()
-	check("pushed the stone against the high ledge", absf(block.global_position.x - 1112.0) < 2.0,
+	check("pushed the stone against the high ledge", absf(block.global_position.x - 1432.0) < 2.0,
 			"stone at %.1f" % block.global_position.x)
-	await leap(1112.0, 224.0, "onto the stone")
-	await leap(1160.0, 160.0, "from the stone onto the ledge")
-	await run_to(1238.0)
-	await leap(1304.0, 160.0, "onto the crumbling ledge")
-	await leap(1400.0, 160.0, "off the crumbling ledge before it falls")
+	await leap(1432.0, 224.0, "onto the stone")
+	await leap(1480.0, 160.0, "from the stone onto the ledge")
+	await run_to(1558.0)
+	await leap(1672.0, 160.0, "onto the crumbling ledge over the thorns")
+	await leap(1820.0, 160.0, "off the crumbling ledge onto the long platform")
 	await run_until_room(&"ember_entry", 1.0)
 
 
 func ember_entry() -> void:
-	await run_to(1702.0)
-	await leap(1768.0, 208.0, "onto the first crumbling ledge")
-	await leap(1848.0, 192.0, "onto the second crumbling ledge")
-	await leap(1928.0, 208.0, "onto the third crumbling ledge")
-	await leap(2000.0, 240.0, "down to the far floor")
-	await run_to(2068.0)
-	await leap(2184.0, 240.0, "over the leaf dip")
+	await run_to(2454.0)
+	await leap(2520.0, 208.0, "onto the first crumbling ledge")
+	await leap(2600.0, 192.0, "onto the second crumbling ledge")
+	await leap(2680.0, 208.0, "onto the third crumbling ledge")
+	await leap(2752.0, 240.0, "down to the far floor")
+	await run_to(2820.0)
+	await leap(2936.0, 240.0, "over the leaf dip")
 	await run_until_room(&"ember_leaves", 1.0)
 
 
 func ember_leaves() -> void:
-	await run_to(2350.0)
-	for target: Vector2 in [Vector2(2424, 240), Vector2(2504, 224), Vector2(2584, 240), Vector2(2648, 208),
-			Vector2(2728, 224), Vector2(2792, 240), Vector2(2856, 208), Vector2(2930, 240)]:
+	await run_to(3102.0)
+	for target: Vector2 in [Vector2(3176, 240), Vector2(3256, 224), Vector2(3336, 240), Vector2(3400, 208),
+			Vector2(3480, 224), Vector2(3544, 240), Vector2(3608, 208), Vector2(3682, 240)]:
 		await leap(target.x, target.y, "to (%d, %d) over the thorns" % [target.x, target.y])
 		if _aborted:
 			return
@@ -105,14 +99,14 @@ func ember_leaves() -> void:
 
 
 func ember_climb() -> void:
-	await run_to(3160.0)
-	await leap(3200.0, 192.0, "onto the first ledge")
-	await run_to(3240.0)
-	await leap(3336.0, 144.0, "onto the plank")
-	await run_to(3370.0)
-	await leap(3464.0, 96.0, "onto the right-hand ledge")
-	await run_to(3430.0)
-	await leap(3330.0, 48.0, "onto the long shelf")
+	await run_to(3912.0)
+	await leap(3952.0, 192.0, "onto the first ledge")
+	await run_to(3992.0)
+	await leap(4088.0, 144.0, "onto the plank")
+	await run_to(4122.0)
+	await leap(4216.0, 96.0, "onto the right-hand ledge")
+	await run_to(4182.0)
+	await leap(4082.0, 48.0, "onto the long shelf")
 	if _aborted:
 		return
 	var block: PushBlock = main.room.find_children("*", "PushBlock", true, false)[0]
@@ -121,29 +115,32 @@ func ember_climb() -> void:
 	_hold(&"grab")
 	_release(&"move_left")
 	_hold(&"move_right")
-	await until(func() -> bool: return block.global_position.x >= 3223.0, 240)
+	await until(func() -> bool: return block.global_position.x >= 3975.0, 240)
 	_release_all()
-	check("pulled the stone out of its niche", block.global_position.x >= 3220.0,
+	check("pulled the stone out of its niche", block.global_position.x >= 3972.0,
 			"stone at %.1f" % block.global_position.x)
 	await frames(5)
 	await leap(block.global_position.x, block.global_position.y - 16.0, "onto the pulled stone")
-	await leap(3262.0, -32.0, "from the stone onto the upper shelf")
-	await leap(3120.0, -64.0, "to the exit ledge")
+	await leap(4014.0, -32.0, "from the stone onto the upper shelf")
+	await leap(3872.0, -64.0, "to the exit ledge")
 	await run_until_room(&"ember_gate", -1.0)
 
 
 func ember_gate() -> void:
+	var gate: SpiritGate = main.room.find_children("*", "SpiritGate", true, false)[0]
 	_hold(&"move_left")
-	var asked := await until(func() -> bool: return main.confirm.visible, 600)
+	var shown := await until(func() -> bool: return gate.hint.visible, 600)
 	_release_all()
-	check("walking into the Spirit Room's door asks if you're ready", asked, str(hero.global_position))
+	await frames(10)
+	check("walking into the Spirit Room's gate shows the Interact key", shown, str(hero.global_position))
+	await _tap(&"interact")
+	var asked := await until(func() -> bool: return main.confirm.visible, 60)
+	check("pressing Interact at the gate asks if you're ready", asked, str(hero.global_position))
 	if not asked:
 		_aborted = true
 		return
 	await frames(3)
-	_hold(&"jump")
-	await frames(2)
-	_release(&"jump")
+	await _tap(&"jump")
 	var entered := await until(func() -> bool: return main.room.room_id == &"ember_spirit_room" and not main.transitioning, 120)
 	check("answering Yes enters the Spirit Room at its start", entered
 			and hero.global_position.distance_to(main.room.named_spawn(&"Start")) < 2.0, str(hero.global_position))
@@ -153,35 +150,12 @@ func ember_gate() -> void:
 
 
 func spirit_room() -> void:
-	await run_to(2432.0)
-	await leap(2340.0, -64.0, "over the first thorn pit")
-	await run_to(2318.0)
-	await leap(2196.0, -64.0, "over the second thorn pit")
-	await run_to(2152.0)
-	await leap(2028.0, -64.0, "under the thorn ceiling", 46.0)
-	await run_to(1962.0)
-	await leap(1896.0, -96.0, "onto crumbling ledge 1")
-	await leap(1800.0, -112.0, "onto crumbling ledge 2")
-	await leap(1704.0, -96.0, "onto crumbling ledge 3")
-	await leap(1600.0, -64.0, "to the floor before the stone")
-	if _aborted:
-		return
-	var block: PushBlock = main.room.find_children("*", "PushBlock", true, false)[0]
-	_hold(&"move_left")
-	await until(func() -> bool: return hero.adjacent_block(-1) == block, 120)
-	_hold(&"grab")
-	await until(func() -> bool: return block.global_position.x <= 1449.0, 600)
-	_release_all()
-	check("pushed the stone under the thorn ceiling to the wall", block.global_position.x <= 1449.0,
-			str(block.global_position))
-	await frames(5)
-	await leap(1448.0, -80.0, "onto the stone")
-	await leap(1400.0, -144.0, "from the stone up the wall")
-	await run_to(1318.0)
-	for target: Vector2 in [Vector2(1272, -96), Vector2(1208, -80), Vector2(1144, -96), Vector2(1052, -96)]:
-		await leap(target.x, target.y, "to (%d, %d) over the last thorns" % [target.x, target.y], 30.0)
-		if _aborted:
-			return
+	# The run itself is skipped until the room settles: step down beside the orb and walk in.
+	var orb: ColorOrb = main.room.find_children("*", "ColorOrb", true, false)[0]
+	hero.global_position = Vector2(orb.global_position.x + 40.0, main.room.world_bounds().position.y + 256.0)
+	hero.velocity = Vector2.ZERO
+	await frames(10)
+	await run_to(orb.global_position.x)
 	var absorbed := func() -> bool:
 		return GameState.has_color(GameState.SpiritColor.ORANGE) and not hero.frozen and not hero.input_locked
 	await until(absorbed, 300)
@@ -190,24 +164,41 @@ func spirit_room() -> void:
 	check("control comes back with no card in the way", not hero.frozen and not hero.input_locked, "")
 	check("the run is recorded quietly", GameState.best_time(&"ember_spirit_room") < INF
 			and GameState.clear_deaths.has("ember_spirit_room"), GameState.format_time(GameState.best_time(&"ember_spirit_room")))
-	print("    Spirit Room run: %s" % GameState.format_time(GameState.best_time(&"ember_spirit_room")))
+	if not GameState.has_color(GameState.SpiritColor.ORANGE):
+		_aborted = true
 
 
-func shortcut_home() -> void:
-	await run_until_room(&"hollow_east", -1.0)
-	check("the orange gate opened the shaft down into the Hollow", main.room.room_id == &"hollow_east", "")
-	await until(func() -> bool: return hero.is_on_floor(), 120)
-	_hold(&"move_left")
-	await until(func() -> bool: return GameState.has_flag(&"hollow_shortcut"), 180)
-	check("the shortcut gate opens from the far side", GameState.has_flag(&"hollow_shortcut"), "")
-	await run_until_room(&"hollow_clearing", -1.0)
-	await run_to(514.0)
-	await leap(420.0, 208.0, "back up onto the clearing's ledge")
-	# From the end of the ledge, over the thorns below it.
-	var thorns := main.room.get_node(^"Hazards").get_child(0) as Thorns
-	var hurt := thorns.get_global_transform() * thorns.hurt_rect()
-	await run_to(360.0)
-	await leap(minf(hurt.position.x - 24.0, 300.0), 240.0, "back over the thorns")
+func leave_spirit_room() -> void:
+	if _aborted:
+		return
+	var exits := main.room.find_children("*", "SpiritGate", true, false).filter(
+			func(gate: SpiritGate) -> bool: return gate.mode == SpiritGate.Mode.EXIT)
+	if exits.is_empty():
+		print("    (no exit gate in the room yet: leaving from the pause menu)")
+		await _tap(&"pause")
+		# Rows: Resume, Map, Settings, Leave Spirit Room, Quit.
+		for i in 3:
+			await _tap(&"move_down")
+		await _tap(&"ui_accept")
+	else:
+		var exit: SpiritGate = exits[0]
+		await run_to(exit.global_position.x)
+		await frames(10)
+		await _tap(&"interact")
+	var back := await until(func() -> bool: return main.room.room_id == &"ember_gate" and not main.transitioning, 180)
+	var gate: SpiritGate = main.room.find_children("*", "SpiritGate", true, false)[0] if back else null
+	check("leaving the Spirit Room goes back to the gate it was entered through", back
+			and hero.global_position.distance_to(gate.global_position) < 2.0, "%s at %s" % [main.room.room_id, hero.global_position])
+	if not back:
+		_aborted = true
+
+
+func back_to_the_hollow() -> void:
+	if _aborted:
+		return
+	# The walk home from Ember Gate isn't played yet: start again at the clearing's west side.
+	main._enter_world_room(&"hollow_clearing", Vector2(40, 240))
+	await frames(5)
 	await run_until_room(&"hollow_west", -1.0)
 
 
@@ -243,6 +234,14 @@ func meadow_end() -> void:
 
 
 # --- Moves ---------------------------------------------------------------------------------
+
+## Press and release a button, two frames each.
+func _tap(action: StringName) -> void:
+	_hold(action)
+	await frames(2)
+	_release(action)
+	await frames(2)
+
 
 ## Run toward world x, stopping there.
 func run_to(x: float) -> void:

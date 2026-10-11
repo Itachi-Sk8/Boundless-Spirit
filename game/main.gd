@@ -2,8 +2,9 @@ class_name Main
 extends Node2D
 ## The game. Holds the hero, the camera, and the HUD, and swaps rooms in and out as the hero
 ## moves through the world: room changes behind the letterbox, deaths and respawns,
-## checkpoints, Spirit Room doors and runs, the color unlock and its cascade, play time, and
-## autosaving.
+## checkpoints, Spirit Room gates and runs, the color unlock and its cascade, play time, and
+## autosaving. Spirit Rooms stand apart from the world: their gates are the only way in and out,
+## and leaving one goes back to the gate the hero came in through.
 
 ## Entities reach the game through this (null outside the game, e.g. in tests).
 static var instance: Main
@@ -101,7 +102,8 @@ func _physics_process(_delta: float) -> void:
 	var bounds := room.world_bounds()
 	if bounds.has_point(center):
 		return
-	var next := WorldMap.room_at(center) if room.room_id != &"" else &""
+	# Spirit Rooms connect to nothing: their edges are walls, and falling out is a death.
+	var next := WorldMap.room_at(center) if room.room_id != &"" and not room.spirit_room else &""
 	if next != &"" and next != room.room_id and not WorldMap.solid_at(next, center):
 		_change_room(next)
 	elif center.y > bounds.end.y + PIT_MARGIN:
@@ -137,17 +139,19 @@ func run_deaths() -> int:
 	return _run_deaths
 
 
-## Inside a Spirit Room whose archway is known, so the pause menu can offer the way out.
+## Inside a Spirit Room with a gate to go back to, so the pause menu can offer the way out.
 func can_leave_spirit_room() -> bool:
-	return room != null and room.spirit_room and not WorldMap.door_into(room.room_id).is_empty()
+	return room != null and room.spirit_room and not spirit_return().is_empty()
 
 
-## Leave a Spirit Room from the pause menu: back outside its archway. The room resets.
+## Leave a Spirit Room (its exit gate, or Leave Spirit Room in the pause menu): back to the
+## doorway of the gate the hero came in through. The room resets.
 func leave_spirit_room() -> void:
-	var door := WorldMap.door_into(room.room_id)
-	if door.is_empty():
+	var back := spirit_return()
+	if back.is_empty():
 		return
-	await _travel(door["room"], &"", door["outside"])
+	GameState.spirit_return_room = &""
+	await _travel(back["room"], &"", back["spot"])
 
 
 ## Put the hero back at its respawn point with the room reset, as after a death.
@@ -167,9 +171,10 @@ func checkpoint_reached(spot: Vector2) -> bool:
 	return true
 
 
-## Called by a Spirit Room's door when the hero walks into it: asks whether to go in. Yes
-## enters the room at its start; No leaves the hero standing outside the door.
-func knock(door: SpiritArchway) -> void:
+## Called by a Spirit Room's entrance gate when the hero presses Interact in its doorway: asks
+## whether to go in. Yes enters the room at its start, remembering this gate as the way back;
+## No leaves the hero standing where they are.
+func knock(door: SpiritGate) -> void:
 	if transitioning or player.frozen:
 		return
 	player.frozen = true
@@ -179,9 +184,10 @@ func knock(door: SpiritArchway) -> void:
 	# The press that answered shouldn't also make the hero jump.
 	player.jump_buffer_timer = 0.0
 	if yes:
+		GameState.spirit_return_room = room.room_id
+		GameState.spirit_return_spot = door.global_position
 		await _travel(door.target_room, door.target_spawn)
 	else:
-		player.global_position.x = door.outside_x()
 		await get_tree().process_frame
 		player.frozen = false
 
@@ -220,6 +226,14 @@ func collect_color(orb: ColorOrb) -> void:
 	GameState.save_game()
 
 
+## Where leaving the current Spirit Room goes: the gate the hero came in through, or else the
+## first gate leading here. {"room", "spot" (world px)}, or empty if there's none.
+func spirit_return() -> Dictionary:
+	if WorldMap.has_room(GameState.spirit_return_room):
+		return {"room": GameState.spirit_return_room, "spot": GameState.spirit_return_spot}
+	return WorldMap.door_into(room.room_id)
+
+
 func _enter_world_room(id: StringName, spot: Vector2) -> void:
 	GameState.room_id = id
 	_enter(id, WorldMap.scene_of(id), WorldMap.rect_px(id).position, spot)
@@ -240,7 +254,7 @@ func _enter(id: StringName, scene_path: String, origin: Vector2, spot: Vector2) 
 		GameState.save_game()
 
 
-## Go into a world room behind the letterbox (Spirit Room doors, leaving a Spirit Room): at
+## Go into a world room behind the letterbox (Spirit Room gates, leaving a Spirit Room): at
 ## `spot` in world px if given, otherwise at the spawn point named `spawn`.
 func _travel(id: StringName, spawn: StringName, spot := Vector2.INF) -> void:
 	transitioning = true

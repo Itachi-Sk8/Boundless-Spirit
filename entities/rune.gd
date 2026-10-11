@@ -11,12 +11,18 @@ const GLYPHS := 24
 const GROOVE := Color(0.0, 0.0, 0.0, 0.6)
 const EDGE := Color(1.0, 1.0, 1.0, 0.3)
 
-## Which glyph, from art/entities/runes.png (8 per row).
+## Which glyph, from the glyph sheet (8 per row).
 @export_range(0, 23) var glyph := 0:
 	set(value):
 		glyph = clampi(value, 0, GLYPHS - 1)
 		queue_redraw()
-## The light's color. Inside a SpiritArchway the gate's `rune_color` sets this, unless
+## The glyph sheet: 16×16 glyphs, 8 per row. Empty uses art/entities/runes.png. Inside a
+## SpiritGate the gate's `glyph_sheet` sets this.
+@export var sheet: Texture2D:
+	set(value):
+		sheet = value
+		queue_redraw()
+## The light's color. Inside a SpiritGate the gate's `rune_color` sets this, unless
 ## `own_color` is on.
 @export var color := Color(0.95, 0.55, 0.22):
 	set(value):
@@ -51,12 +57,13 @@ func _process(_delta: float) -> void:
 
 
 func _draw() -> void:
+	var glyphs := sheet if sheet else SHEET
 	var region := Rect2((glyph % 8) * SIZE, floori(glyph / 8.0) * SIZE, SIZE, SIZE)
 	if carved:
-		draw_texture_rect_region(SHEET, Rect2(1, 1, SIZE, SIZE), region, EDGE)
-		draw_texture_rect_region(SHEET, Rect2(0, 0, SIZE, SIZE), region, GROOVE)
+		draw_texture_rect_region(glyphs, Rect2(1, 1, SIZE, SIZE), region, EDGE)
+		draw_texture_rect_region(glyphs, Rect2(0, 0, SIZE, SIZE), region, GROOVE)
 	var alpha := brightness
 	if pulse:
 		var time := Time.get_ticks_msec() / 1000.0
 		alpha *= (0.6 + 0.3 * sin(time * 1.8)) / 0.9
-	draw_texture_rect_region(SHEET, Rect2(0, 0, SIZE, SIZE), region, Color(color, color.a * alpha))
+	draw_texture_rect_region(glyphs, Rect2(0, 0, SIZE, SIZE), region, Color(color, color.a * alpha))
