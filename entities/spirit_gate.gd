@@ -49,6 +49,12 @@ const LOCKED_MESSAGE := "The way out opens when the color returns."
 	set(value):
 		portal_color = value
 		_paint()
+## How far the glow reaches past the doorway's sides and top, in px, behind the stone. The glow
+## fades toward its edges, so reaching under the stone lets it fill the doorway.
+@export var portal_overhang := Vector2i(12, 10):
+	set(value):
+		portal_overhang = value
+		_layout()
 ## How fast the doorway's light drifts.
 @export var portal_speed := 1.4:
 	set(value):
@@ -127,8 +133,9 @@ func _layout() -> void:
 	var door := Rect2(Vector2(opening.position) - anchor, opening.size)
 	stone.texture = texture
 	stone.offset = -anchor
-	portal.position = door.position
-	portal.size = door.size
+	var reach := Vector2(portal_overhang)
+	portal.position = door.position - reach
+	portal.size = door.size + Vector2(reach.x * 2.0, reach.y)
 	motes.position = door.get_center() + Vector2(0, 8)
 	motes.emission_rect_extents = (door.size / 2.0 - Vector2(8, 12)).max(Vector2.ONE)
 	# The trigger: the bottom of the doorway, a little in from the sides.

@@ -1,7 +1,9 @@
 class_name PushBlock
 extends CharacterBody2D
 ## A block the hero can push and pull while holding Grab. Falls when nothing holds it up,
-## and goes back to its start when the room resets. Origin at the bottom center.
+## and goes back to its start when the room resets. Origin at the bottom center. It collides
+## with the hero too, so a pull can't drag it into a hero pressed against a wall (that wedged
+## the hero in place for good).
 
 @export var gravity := 990.0
 @export var max_fall_speed := 480.0

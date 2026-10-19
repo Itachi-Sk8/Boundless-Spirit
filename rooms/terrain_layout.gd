@@ -13,6 +13,10 @@ extends TileMapLayer
 ## hero's feet meet the soil; the grass blades above it go in the empty cell above, on another
 ## layer (`grass_tops`) that's drawn with the terrain, behind the hero and the decoration. Rooms use Thorns objects (entities/thorns.tscn) instead, which
 ## can be moved, stretched, and tinted in the editor; the characters still work.
+##
+## Thorns sit on bare soil: grass under a Thorns object (or a thorn character) is drawn as the
+## plain dirt fill, with no grassy top and no blades, as if the thorns were part of the ground.
+## Moving a Thorns object in the editor repaints this as you go.
 
 # Atlas layout of art/tilesets/forest.png (see tools/build_art.py).
 const GRASS_ROW := 0
@@ -79,17 +83,25 @@ func layout_size() -> Vector2i:
 
 func rebuild() -> void:
 	var rows := _rows()
-	if rows.is_empty() or hazards == null:
+	if hazards == null:
+		return
+	if rows.is_empty():
+		# Layout cleared to paint by hand: keep the tiles to paint over, but the grass blades and
+		# thorn characters came from the text, so they go with it.
+		hazards.clear()
+		grass_tops.clear()
 		return
 	clear()
 	hazards.clear()
 	grass_tops.clear()
+	var bare := _thorn_cells()
 	for y in rows.size():
 		for x in rows[y].length():
 			var symbol := rows[y][x]
 			var cell := Vector2i(x, y)
 			if symbol in SOLID:
-				var tile := _terrain_tile(rows, x, y, symbol)
+				var under_thorns := bare.has(cell + Vector2i.UP) or THORNS.has(_at(rows, x, y - 1))
+				var tile := _terrain_tile(rows, x, y, symbol, under_thorns)
 				set_cell(cell, 0, tile)
 				var blades := _grass_top(tile)
 				if blades.x >= 0 and y > 0:
@@ -109,10 +121,38 @@ func rebuild() -> void:
 				hazards.set_cell(cell, 0, THORNS[symbol])
 
 
-func _terrain_tile(rows: PackedStringArray, x: int, y: int, symbol: String) -> Vector2i:
+## Repaint so the ground under the room's Thorns objects is bare dirt (the thorns call this as
+## they move in the editor).
+func refresh_bare_soil() -> void:
+	rebuild()
+
+
+# The cells covered by the room's Thorns objects. A row sunk a few pixels into the ground still
+# counts the cell above it, where the grass would be.
+func _thorn_cells() -> Dictionary:
+	var cells := {}
+	var room := get_parent()
+	if room == null:
+		return cells
+	var tile := Vector2(tile_set.tile_size)
+	for node in room.find_children("*", "Thorns", true, false):
+		var thorns := node as Thorns
+		var art := thorns.art_rect()
+		art = art.grow_side(SIDE_TOP, tile.y / 2.0)
+		var area := (get_global_transform().affine_inverse() * thorns.get_global_transform()) * art
+		var first := Vector2i((area.position / tile).floor())
+		var last := Vector2i(((area.end - Vector2.ONE) / tile).floor())
+		for y in range(first.y, last.y + 1):
+			for x in range(first.x, last.x + 1):
+				cells[Vector2i(x, y)] = true
+	return cells
+
+
+# `under_thorns`: grass with thorns on top shows no top surface, only the dirt fill.
+func _terrain_tile(rows: PackedStringArray, x: int, y: int, symbol: String, under_thorns := false) -> Vector2i:
 	# Beyond the room's edge counts as solid, so ground runs on seamlessly into the next room.
 	var mask := 0
-	if not _at(rows, x, y - 1) in SOLID and y > 0:
+	if not _at(rows, x, y - 1) in SOLID and y > 0 and not (under_thorns and symbol == "#"):
 		mask |= UP
 	if not _at(rows, x, y + 1) in SOLID and y + 1 < rows.size():
 		mask |= DOWN

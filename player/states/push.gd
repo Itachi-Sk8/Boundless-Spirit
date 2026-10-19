@@ -15,8 +15,9 @@ func enter(_previous: StringName) -> void:
 
 func physics_update(delta: float) -> void:
 	player.refill()
-	if not Input.is_action_pressed(&"grab") or not player.is_on_floor() \
-			or player.adjacent_block(_side) != _block:
+	# The block is gone when a pull carries the hero into the next room: let go of it.
+	if not is_instance_valid(_block) or not Input.is_action_pressed(&"grab") \
+			or not player.is_on_floor() or player.adjacent_block(_side) != _block:
 		land()
 		return
 	if player.try_ground_jump():

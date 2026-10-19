@@ -1,8 +1,8 @@
 class_name WorldMap
 ## Where every room sits in the one connected forest. Every scene under res://rooms/ is a room,
 ## except in test/ and anything whose name starts with "_" (the template, the world view); its id is its file name, and its root node says where it
-## sits (`world_origin`, in tiles) and which region it belongs to. Its size is its terrain
-## layout's size. Walking off a room's edge enters whichever room covers that spot, so rooms
+## sits (`world_origin`, in tiles) and which region it belongs to. Its size is its Room Size
+## where set (the editor's resize buttons), otherwise its terrain layout's size. Walking off a room's edge enters whichever room covers that spot, so rooms
 ## connect by where they are, not by wiring. Adding a room is just saving a new scene there.
 ##
 ## Spirit Rooms (`spirit_room` on the root) stand apart: they aren't part of the connected world,
@@ -141,6 +141,7 @@ static func _read_room(path: String) -> Dictionary:
 	var state := (load(path) as PackedScene).get_state()
 	var offsets := {}  # node path -> position in the room
 	var has_layout := false
+	var size_override := Vector2i.ZERO
 	for i in state.get_node_count():
 		var node_path := _clean(state.get_node_path(i))
 		var parent_path := _clean(state.get_node_path(i, true)) if i > 0 else ""
@@ -158,6 +159,8 @@ static func _read_room(path: String) -> Dictionary:
 				info["region"] = StringName(value)
 			elif i == 0 and property == &"spirit_room":
 				info["spirit_room"] = value
+			elif i == 0 and property == &"size_tiles":
+				size_override = value
 			elif node_path == "Terrain" and property == &"layout":
 				info["rows"] = TerrainLayout.rows_of(value)
 				has_layout = true
@@ -185,6 +188,12 @@ static func _read_room(path: String) -> Dictionary:
 		if terrain:
 			info["size"] = terrain.get_used_rect().end
 		room.free()
+	# A Room Size set in the editor wins, axis by axis (see Room.resize_side).
+	var size: Vector2i = info["size"]
+	for axis in 2:
+		if size_override[axis] > 0:
+			size[axis] = size_override[axis]
+	info["size"] = size
 	return info
 
 

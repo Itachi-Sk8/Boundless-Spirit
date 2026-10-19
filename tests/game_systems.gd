@@ -35,6 +35,7 @@ func _run() -> void:
 	await test_sinking_leaf()
 	await test_world_color_cascade()
 	await test_thorns()
+	await test_push_pin()
 	await test_spirit_door()
 	await test_menus()
 	await test_save_round_trip()
@@ -58,7 +59,19 @@ func test_world_map() -> void:
 			and WorldMap.is_spirit_room(&"ember_spirit_room"), str(spirit))
 	var door := WorldMap.door_into(&"ember_spirit_room")
 	check("the entrance gate in Ember Gate is read as the way in", door.get("room") == &"ember_gate"
-			and door["spot"] == WorldMap.rect_px(&"ember_gate").position + Vector2(66, 208), str(door))
+			and door["spot"] == WorldMap.rect_px(&"ember_gate").position + Vector2(466, 288), str(door))
+	# A room painted by hand (Layout left empty) is measured by its painted tiles.
+	var painted: Room = load(WorldMap.scene_of(&"hollow_east")).instantiate()
+	add_child(painted)
+	var laid_out := painted.world_bounds()
+	(painted.terrain as TerrainLayout).layout = ""
+	check("a room painted by hand is as big as its tiles, not empty", painted._terrain_bounds() == laid_out,
+			str(painted._terrain_bounds()))
+	var hand := painted.terrain as TerrainLayout
+	check("  and clearing its Layout drops the grass blades but keeps the tiles",
+			hand.grass_tops.get_used_cells().is_empty() and not hand.get_used_cells().is_empty(), "")
+	painted.free()
+	test_room_size()
 	for id: StringName in WorldMap.rooms():
 		var info: Dictionary = WorldMap.rooms()[id]
 		var room: Room = load(info["scene"]).instantiate()
@@ -72,6 +85,43 @@ func test_world_map() -> void:
 				and spawns.all(func(s: Node) -> bool: return bounds.has_point((s as Node2D).position - Vector2(0, 1))), "")
 		room.free()
 	check("no two rooms overlap", WorldMap.overlaps().is_empty(), str(WorldMap.overlaps()))
+
+
+# The editor's Room Size buttons (Room.resize_side), used here without the editor.
+func test_room_size() -> void:
+	var room: Room = load(WorldMap.scene_of(&"hollow_clearing")).instantiate()
+	add_child(room)
+	var layout := room.terrain as TerrainLayout
+	var rows := TerrainLayout.rows_of(layout.layout)
+	var size := room.size_in_tiles()
+	var start := room.named_spawn(&"Start")
+	var origin := room.world_origin
+	room.resize_side(SIDE_TOP, 3)
+	var grown := TerrainLayout.rows_of(layout.layout)
+	check("Room Size: adding rows on top adds empty rows and moves everything down with them",
+			grown.size() == rows.size() + 3 and grown[0] == ".".repeat(grown[0].length()) and grown[3] == rows[0]
+			and room.named_spawn(&"Start") == start + Vector2(0, 48) and room.world_origin == origin - Vector2i(0, 3),
+			"%d rows, start %s, origin %s" % [grown.size(), room.named_spawn(&"Start"), room.world_origin])
+	room.resize_side(SIDE_TOP, -3)
+	check("  and removing them puts everything back", TerrainLayout.rows_of(layout.layout) == rows
+			and room.named_spawn(&"Start") == start and room.world_origin == origin, "")
+	room.resize_side(SIDE_RIGHT, 2)
+	room.resize_side(SIDE_BOTTOM, -1)
+	check("  adding columns on the right and removing a row at the bottom", room.size_in_tiles() == size + Vector2i(2, -1)
+			and room.named_spawn(&"Start") == start, str(room.size_in_tiles()))
+	room.free()
+	var painted: Room = load(WorldMap.scene_of(&"hollow_east")).instantiate()
+	add_child(painted)
+	(painted.terrain as TerrainLayout).layout = ""
+	var tiles := painted.terrain
+	var size_before := painted.size_in_tiles()
+	var edge := tiles.get_cell_atlas_coords(Vector2i(0, 15))
+	painted.resize_side(SIDE_LEFT, 2)
+	check("  a painted room gets a Room Size, and adding columns on the left moves its tiles over",
+			painted.size_tiles == size_before + Vector2i(2, 0) and tiles.get_cell_source_id(Vector2i(0, 15)) == -1
+			and tiles.get_cell_atlas_coords(Vector2i(2, 15)) == edge and painted.world_origin.x == 58,
+			"%s %s" % [painted.size_tiles, painted.world_origin])
+	painted.free()
 
 
 func test_checkpoint_respawn() -> void:
@@ -131,8 +181,9 @@ func test_sinking_leaf() -> void:
 	var landed_at := leaf.global_position.y
 	await frames(30)
 	var sunk := leaf.global_position.y - landed_at
-	check("a lily pad sinks twice as fast under the hero (56 px/s: about 28 px in half a second)",
-			absf(sunk - 28.0) < 3.0, "%.1f px" % sunk)
+	var expected := leaf.sink_speed / 2.0
+	check("a lily pad sinks at its own speed under the hero (%d px/s: about %d px in half a second)" % [leaf.sink_speed, expected],
+			absf(sunk - expected) < 3.0, "%.1f px" % sunk)
 	hero.respawn(Vector2(3052, 240), true)
 	await frames(90)
 	check("a lily pad floats back up when left", absf(leaf.global_position.y - top) < 1.0,
@@ -223,6 +274,25 @@ func test_thorns() -> void:
 	var thorns := main.room.get_node(^"Hazards").get_child(0) as Thorns
 	check("a Thorns row's hurt area spans its length", thorns.hurt_rect() == Rect2(2, 7, thorns.length * 16 - 4 + thorns.adjust_px, 9),
 			str(thorns.hurt_rect()))
+	# Hollow East's thorns stand on the floor, with open floor (and its grass) to their left.
+	var terrain := main.room.terrain as TerrainLayout
+	var row := int(thorns.position.y / 16.0)
+	var mid := int((thorns.position.x + thorns.length_px() / 2.0) / 16.0)
+	var left := int(thorns.position.x / 16.0) - 9
+	# Grass with a top surface: the grassy top-edge tiles (the blades grow in the cell above).
+	var grassy := func(column: int) -> bool:
+		var tile := terrain.get_cell_atlas_coords(Vector2i(column, row + 1))
+		return terrain.grass_tops.get_cell_source_id(Vector2i(column, row)) != -1 \
+				and ((tile.y == 0 and tile.x & TerrainLayout.UP) or (tile.y == 2 and tile.x in [2, 3]))
+	var under := terrain.get_cell_atlas_coords(Vector2i(mid, row + 1))
+	var dirt := (under.y == 0 and under.x & TerrainLayout.UP == 0) or (under.y == 2 and under.x in [0, 1])
+	check("thorns sit on bare dirt: plain dirt tiles and no grass under them, grass beside them",
+			not grassy.call(mid) and dirt and grassy.call(left), str(under))
+	thorns.position.x -= 160.0
+	terrain.refresh_bare_soil()
+	check("  and the bare dirt follows the thorns when they move", grassy.call(mid) and not grassy.call(left), "")
+	thorns.position.x += 160.0
+	terrain.refresh_bare_soil()
 	var deaths := GameState.deaths
 	hero.global_position = thorns.global_position + Vector2(thorns.length * 8.0, -4.0)
 	hero.velocity = Vector2.ZERO
@@ -235,14 +305,61 @@ func test_thorns() -> void:
 	thorns.length = 2
 
 
+func test_push_pin() -> void:
+	# Pull Hollow East's stone right until the hero is pressed against the big block. The stone
+	# used to slide into the hero there, wedging the hero for good.
+	main._enter_world_room(&"hollow_east", Vector2.INF)
+	await frames(5)
+	var block: PushBlock = main.room.find_children("*", "PushBlock", true, false)[0]
+	hero.global_position = block.global_position + Vector2(20, 0)
+	hero.velocity = Vector2.ZERO
+	await frames(10)
+	Input.action_press(&"grab")
+	Input.action_press(&"move_left")
+	await frames(4)
+	Input.action_release(&"move_left")
+	Input.action_press(&"move_right")
+	await frames(400)
+	Input.action_release(&"move_right")
+	Input.action_release(&"grab")
+	await frames(5)
+	var gap := (hero.global_position.x - hero.tuning.stand_size.x / 2.0) - (block.global_position.x + 8.0)
+	check("pulling a stone until pinned against a wall never drags it into the hero",
+			gap >= 0.0 and hero.is_on_floor(), "gap %.2f, on floor %s" % [gap, hero.is_on_floor()])
+	var y := hero.global_position.y
+	await press(&"jump")
+	await frames(8)
+	check("  and the hero can still jump out", y - hero.global_position.y > 10.0, "rose %.1f" % (y - hero.global_position.y))
+	await frames(60)
+	# Pull it left across the room's edge: the stone stays behind, so the hero lets go of it.
+	main._enter_world_room(&"hollow_east", Vector2.INF)
+	await frames(5)
+	block = main.room.find_children("*", "PushBlock", true, false)[0]
+	hero.global_position = block.global_position + Vector2(-20, 0)
+	hero.velocity = Vector2.ZERO
+	await frames(10)
+	Input.action_press(&"grab")
+	Input.action_press(&"move_right")
+	await frames(4)
+	Input.action_release(&"move_right")
+	Input.action_press(&"move_left")
+	await until(func() -> bool: return main.room.room_id == &"hollow_clearing" and not main.transitioning, 600)
+	await frames(10)
+	Input.action_release(&"move_left")
+	Input.action_release(&"grab")
+	check("pulling a stone into the next room lets go of it", main.room.room_id == &"hollow_clearing"
+			and hero.state_name != &"push", "%s %s" % [main.room.room_id, hero.state_name])
+
+
 func test_spirit_door() -> void:
 	GameState.set_color(GameState.SpiritColor.ORANGE, false)
-	main._enter_world_room(&"ember_gate", Vector2(3472, -64))
+	main._enter_world_room(&"ember_gate", Vector2(3752, -512))
 	await frames(3)
 	var gate: SpiritGate = main.room.find_children("*", "SpiritGate", true, false)[0]
+	var reach := Vector2(gate.portal_overhang)
 	check("the gate is one stone image with 7 runes, and a portal filling its doorway", gate.stone.texture != null
-			and gate.runes.get_child_count() == 7 and gate.portal.size == Vector2(64, 96)
-			and gate.portal.position == Vector2(-32, -96), "%s %s" % [gate.portal.position, gate.portal.size])
+			and gate.runes.get_child_count() == 7 and gate.portal.size == Vector2(64, 96) + Vector2(reach.x * 2.0, reach.y)
+			and gate.portal.position == Vector2(-32, -96) - reach, "%s %s" % [gate.portal.position, gate.portal.size])
 	Input.action_press(&"move_left")
 	var shown := await until(func() -> bool: return gate.hint.visible, 300)
 	Input.action_release(&"move_left")

@@ -95,13 +95,20 @@ gamemaker-legacy/  the old GameMaker prototype and raw asset packs (reference on
   `Hazards`, `Entities`, optional `Signs` and `Leaves`, and
   `Spawns` (Marker2Ds; `Start` is used for new games and Spirit Room restarts). On entry the
   respawn point is the spawn nearest to where the hero came in. `spirit_room` makes it one-run
-  and timed. Run any room with F6 and the game starts in it. Room `.tscn` files are edited in
+  and timed. `Room` is `@tool`: in the editor it outlines its area and its neighbours' (red where
+  they overlap), and its Room Size buttons call `resize_side()`, which adds or removes layout
+  rows/columns (or sets `size_tiles` for a painted room) and, on the top or left, moves every
+  placed node and `world_origin` so nothing shifts; one Ctrl+Z step via EditorUndoRedoManager.
+  `size_tiles` (per axis, 0 = from the terrain) is read by `WorldMap` too. Run any room with F6 and the game starts in it. Room `.tscn` files are edited in
   the Godot editor and are the source of truth: change them in place, never regenerate them.
 - **Terrain from text** (`rooms/terrain_layout.gd`, a `@tool` TileMapLayer): paints the room
   from its `layout` string: `#` grass, `%` rock, `=` plank (one-way), `.` empty (`^ v > <`
   still paint thorns, but rooms use `Thorns` objects instead so they can be moved and tinted). It picks every edge tile from the neighbors and repaints in the editor when the text
   changes. The layout's size is the room's size. Leave `layout` empty to paint by hand with
-  the editor's terrain tools (the tileset has a Grass/Rock terrain set).
+  the editor's terrain tools (the tileset has a Grass/Rock terrain set); the room is then as
+  big as its painted tiles. Thorns sit on bare dirt: grass under a Thorns object is drawn as the
+  plain dirt fill, with no grassy top or blades (`refresh_bare_soil`; moving thorns in the
+  editor repaints it).
 - **World color** (`game/world_color.gd`, `shaders/layer_color.gdshader`): six layers (sky,
   far hills, near forest, trees behind, front decoration, ground and gameplay) plus hazards,
   each drawn grey with its own color strength. `WorldColor.strengths()` turns the collected

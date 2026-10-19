@@ -1,54 +1,55 @@
-[gd_scene format=3]
+[gd_scene format=4 uid="uid://dpkawgp1e0ccq"]
 
-[ext_resource type="Script" path="res://rooms/room.gd" id="1"]
-[ext_resource type="Script" path="res://rooms/terrain_layout.gd" id="2"]
-[ext_resource type="TileSet" path="res://art/tilesets/forest.tres" id="3"]
-[ext_resource type="Texture2D" path="res://art/props/tree_red_medium.png" id="4"]
-[ext_resource type="Texture2D" path="res://art/props/tree_red_big.png" id="5"]
-[ext_resource type="Texture2D" path="res://art/props/tree_golden_big.png" id="6"]
-[ext_resource type="Texture2D" path="res://art/props/bush_1.png" id="7"]
-[ext_resource type="Texture2D" path="res://art/props/mushroom_small.png" id="8"]
-[ext_resource type="Texture2D" path="res://art/props/bush_2.png" id="9"]
-[ext_resource type="Texture2D" path="res://art/props/mushroom_big.png" id="10"]
+[ext_resource type="Script" uid="uid://b74dagl6005we" path="res://rooms/room.gd" id="1"]
+[ext_resource type="Script" uid="uid://cd15ivjl5abiu" path="res://rooms/terrain_layout.gd" id="2"]
+[ext_resource type="TileSet" uid="uid://caqmra0ad1sno" path="res://art/tilesets/forest.tres" id="3"]
+[ext_resource type="Texture2D" uid="uid://btikyax7642nn" path="res://art/props/tree_red_medium.png" id="4"]
+[ext_resource type="Texture2D" uid="uid://dvrph7ty8kv7f" path="res://art/props/tree_red_big.png" id="5"]
+[ext_resource type="Texture2D" uid="uid://bf7oi86hhma6g" path="res://art/props/tree_golden_big.png" id="6"]
+[ext_resource type="Texture2D" uid="uid://0kapepuui7e8" path="res://art/props/bush_1.png" id="7"]
+[ext_resource type="Texture2D" uid="uid://d2813ey6awjuq" path="res://art/props/mushroom_small.png" id="8"]
+[ext_resource type="Texture2D" uid="uid://kpbnd02jvav8" path="res://art/props/bush_2.png" id="9"]
+[ext_resource type="Texture2D" uid="uid://dmkn7wfn5pgnb" path="res://art/props/mushroom_big.png" id="10"]
 [ext_resource type="PackedScene" path="res://entities/sinking_leaf.tscn" id="11"]
 [ext_resource type="PackedScene" path="res://entities/leaf_fall.tscn" id="12"]
 
-[node name="EmberLeaves" type="Node2D"]
+[node name="EmberLeaves" type="Node2D" unique_id=755250712]
 script = ExtResource("1")
 world_origin = Vector2i(187, 0)
 region = "ember_grove"
 
-[node name="Props" type="Node2D" parent="."]
+[node name="Props" type="Node2D" parent="." unique_id=612684750]
 z_index = -20
 
-[node name="TreeRedMedium0" type="Sprite2D" parent="Props"]
+[node name="TreeRedMedium0" type="Sprite2D" parent="Props" unique_id=1159776907]
 position = Vector2(2, -67)
 texture = ExtResource("4")
 centered = false
 
-[node name="TreeRedBig1" type="Sprite2D" parent="Props"]
+[node name="TreeRedBig1" type="Sprite2D" parent="Props" unique_id=1369950409]
 position = Vector2(179, -74)
 texture = ExtResource("5")
 centered = false
 flip_h = true
 
-[node name="TreeGoldenBig2" type="Sprite2D" parent="Props"]
+[node name="TreeGoldenBig2" type="Sprite2D" parent="Props" unique_id=1887205762]
 position = Vector2(355, -154)
 texture = ExtResource("6")
 centered = false
 
-[node name="TreeRedBig3" type="Sprite2D" parent="Props"]
+[node name="TreeRedBig3" type="Sprite2D" parent="Props" unique_id=322029201]
 position = Vector2(483, -74)
 texture = ExtResource("5")
 centered = false
 
-[node name="TreeRedMedium4" type="Sprite2D" parent="Props"]
+[node name="TreeRedMedium4" type="Sprite2D" parent="Props" unique_id=1332915534]
 position = Vector2(658, -67)
 texture = ExtResource("4")
 centered = false
 flip_h = true
 
-[node name="Terrain" type="TileMapLayer" parent="."]
+[node name="Terrain" type="TileMapLayer" parent="." unique_id=1850804787]
+tile_map_data = PackedByteArray("AAAYAA0AAAAFAAAAAAAZAA0AAAACAAIAAAAaAA0AAAAJAAAAAAAYAA4AAAAEAAAAAAAZAA4AAAAAAAAAAAAaAA4AAAAIAAAAAAAAAA8AAAABAAAAAAABAA8AAAABAAAAAAACAA8AAAADAAIAAAADAA8AAAABAAAAAAAEAA8AAAADAAIAAAAFAA8AAAACAAIAAAAGAA8AAAABAAAAAAAHAA8AAAAJAAAAAAAYAA8AAAAEAAAAAAAZAA8AAAAAAAAAAAAaAA8AAAAIAAAAAAApAA8AAAAFAAAAAAAqAA8AAAADAAIAAAArAA8AAAABAAAAAAAsAA8AAAADAAIAAAAtAA8AAAABAAAAAAAuAA8AAAADAAIAAAAvAA8AAAABAAAAAAAwAA8AAAADAAIAAAAxAA8AAAACAAIAAAAAABAAAAAAAAIAAAABABAAAAAAAAAAAAACABAAAAAAAAAAAAADABAAAAABAAIAAAAEABAAAAAAAAAAAAAFABAAAAAAAAAAAAAGABAAAAAAAAIAAAAHABAAAAAIAAAAAAAYABAAAAAEAAAAAAAZABAAAAAAAAAAAAAaABAAAAAIAAAAAAApABAAAAAEAAAAAAAqABAAAAAAAAAAAAArABAAAAAAAAAAAAAsABAAAAAAAAAAAAAtABAAAAABAAIAAAAuABAAAAAAAAIAAAAvABAAAAAAAAAAAAAwABAAAAAAAAAAAAAxABAAAAAAAAAAAAAAABEAAAAAAAAAAAABABEAAAAAAAIAAAACABEAAAAAAAAAAAADABEAAAAAAAAAAAAEABEAAAAAAAAAAAAFABEAAAAAAAAAAAAGABEAAAAAAAAAAAAHABEAAAAIAAAAAAAYABEAAAAEAAAAAAAZABEAAAAAAAIAAAAaABEAAAAIAAAAAAApABEAAAAEAAAAAAAqABEAAAABAAIAAAArABEAAAAAAAIAAAAsABEAAAABAAIAAAAtABEAAAAAAAAAAAAuABEAAAABAAIAAAAvABEAAAAAAAAAAAAwABEAAAABAAIAAAAxABEAAAAAAAIAAAAAABIAAAAAAAIAAAABABIAAAAAAAAAAAACABIAAAAAAAAAAAADABIAAAABAAIAAAAEABIAAAAAAAIAAAAFABIAAAAAAAAAAAAGABIAAAAAAAIAAAAHABIAAAAIAAAAAAAYABIAAAAEAAAAAAAZABIAAAAAAAAAAAAaABIAAAAIAAAAAAApABIAAAAEAAAAAAAqABIAAAAAAAAAAAArABIAAAAAAAAAAAAsABIAAAAAAAAAAAAtABIAAAAAAAAAAAAuABIAAAAAAAAAAAAvABIAAAAAAAAAAAAwABIAAAAAAAAAAAAxABIAAAAAAAAAAAAAABMAAAAAAAAAAAABABMAAAAAAAAAAAACABMAAAAAAAAAAAADABMAAAAAAAAAAAAEABMAAAABAAIAAAAFABMAAAAAAAIAAAAGABMAAAABAAIAAAAHABMAAAAIAAAAAAAYABMAAAAEAAAAAAAZABMAAAAAAAIAAAAaABMAAAAIAAAAAAApABMAAAAEAAAAAAAqABMAAAAAAAAAAAArABMAAAAAAAAAAAAsABMAAAABAAIAAAAtABMAAAAAAAIAAAAuABMAAAAAAAAAAAAvABMAAAAAAAAAAAAwABMAAAABAAIAAAAxABMAAAAAAAAAAAA=")
 tile_set = ExtResource("3")
 script = ExtResource("2")
 layout = "..................................................
@@ -72,81 +73,84 @@ layout = "..................................................
 ########................###..............#########
 ########................###..............#########"
 
-[node name="Decor" type="Node2D" parent="."]
+[node name="Decor" type="Node2D" parent="." unique_id=1307621519]
 z_index = 1
 
-[node name="Bush10" type="Sprite2D" parent="Decor"]
+[node name="Bush10" type="Sprite2D" parent="Decor" unique_id=290274836]
 position = Vector2(26, 198)
+scale = Vector2(0.7822581, 1)
 texture = ExtResource("7")
 centered = false
 
-[node name="MushroomSmall1" type="Sprite2D" parent="Decor"]
+[node name="MushroomSmall1" type="Sprite2D" parent="Decor" unique_id=1309517942]
 position = Vector2(387, 195)
 texture = ExtResource("8")
 centered = false
 
-[node name="Bush22" type="Sprite2D" parent="Decor"]
-position = Vector2(634, 198)
+[node name="Bush22" type="Sprite2D" parent="Decor" unique_id=1183734692]
+position = Vector2(660, 198)
+scale = Vector2(0.7903226, 1)
 texture = ExtResource("9")
 centered = false
 
-[node name="MushroomBig3" type="Sprite2D" parent="Decor"]
+[node name="MushroomBig3" type="Sprite2D" parent="Decor" unique_id=309379238]
 position = Vector2(745, 216)
 texture = ExtResource("10")
 centered = false
 
-[node name="PitFade" type="Polygon2D" parent="."]
+[node name="PitFade" type="Polygon2D" parent="." unique_id=1153896140]
 z_index = -10
-polygon = PackedVector2Array(128, 192, 656, 192, 656, 256, 128, 256)
+position = Vector2(-8.696976, 0)
+scale = Vector2(1.0132576, 1)
+polygon = PackedVector2Array(128, 192, 662.9084, 191, 662.9084, 261, 128, 261)
 vertex_colors = PackedColorArray(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1)
 
-[node name="PitBlack" type="Polygon2D" parent="."]
+[node name="PitBlack" type="Polygon2D" parent="." unique_id=409605715]
 z_index = -10
 color = Color(0, 0, 0, 1)
-polygon = PackedVector2Array(128, 256, 656, 256, 656, 352, 128, 352)
+polygon = PackedVector2Array(120, 257, 663, 258, 664, 304, 662, 352, 119, 350)
 
-[node name="Entities" type="Node2D" parent="."]
+[node name="Entities" type="Node2D" parent="." unique_id=276705837]
 z_index = 2
 
-[node name="SinkingLeaf1" parent="Entities" instance=ExtResource("11")]
+[node name="SinkingLeaf1" parent="Entities" unique_id=521558049 instance=ExtResource("11")]
 position = Vector2(184, 240)
-sink_speed = 56.0
+sink_speed = 85.0
 max_sink = 400.0
 
-[node name="SinkingLeaf2" parent="Entities" instance=ExtResource("11")]
+[node name="SinkingLeaf2" parent="Entities" unique_id=1559991257 instance=ExtResource("11")]
 position = Vector2(264, 224)
-sink_speed = 56.0
+sink_speed = 85.0
 max_sink = 400.0
 
-[node name="SinkingLeaf3" parent="Entities" instance=ExtResource("11")]
+[node name="SinkingLeaf3" parent="Entities" unique_id=1582765676 instance=ExtResource("11")]
 position = Vector2(344, 240)
-sink_speed = 56.0
+sink_speed = 85.0
 max_sink = 400.0
 
-[node name="SinkingLeaf4" parent="Entities" instance=ExtResource("11")]
+[node name="SinkingLeaf4" parent="Entities" unique_id=302908363 instance=ExtResource("11")]
 position = Vector2(488, 224)
-sink_speed = 56.0
+sink_speed = 85.0
 max_sink = 400.0
 
-[node name="SinkingLeaf5" parent="Entities" instance=ExtResource("11")]
+[node name="SinkingLeaf5" parent="Entities" unique_id=1693309703 instance=ExtResource("11")]
 position = Vector2(552, 240)
-sink_speed = 56.0
+sink_speed = 85.0
 max_sink = 400.0
 
-[node name="SinkingLeaf6" parent="Entities" instance=ExtResource("11")]
+[node name="SinkingLeaf6" parent="Entities" unique_id=1318272309 instance=ExtResource("11")]
 position = Vector2(616, 208)
-sink_speed = 56.0
+sink_speed = 85.0
 max_sink = 400.0
 
-[node name="Leaves" parent="." instance=ExtResource("12")]
+[node name="Leaves" parent="." unique_id=706206594 instance=ExtResource("12")]
 position = Vector2(400, -8)
 amount = 37
-emission_rect_extents = Vector2(400, 4)
 
-[node name="Spawns" type="Node2D" parent="."]
+[node name="Spawns" type="Node2D" parent="." unique_id=1424554135]
 
-[node name="West" type="Marker2D" parent="Spawns"]
+[node name="West" type="Marker2D" parent="Spawns" unique_id=1731209284]
 position = Vector2(40, 240)
 
-[node name="East" type="Marker2D" parent="Spawns"]
+[node name="East" type="Marker2D" parent="Spawns" unique_id=1485587804]
 position = Vector2(744, 240)

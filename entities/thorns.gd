@@ -54,7 +54,14 @@ func _ready() -> void:
 	monitoring = false
 	z_index = Z
 	add_to_group(&"hazards")
+	if Engine.is_editor_hint():
+		set_notify_transform(true)
 	_rebuild()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_TRANSFORM_CHANGED:
+		_refresh_soil()
 
 
 ## The row's length in px: whole tiles plus the adjustment.
@@ -91,6 +98,18 @@ func _rebuild() -> void:
 	_shape.size = rect.size
 	shape_owner_set_transform(_owner_id, Transform2D(0.0, rect.get_center()))
 	queue_redraw()
+	_refresh_soil()
+
+
+# In the editor, keep the ground under the thorns bare dirt as they move or change (see
+# TerrainLayout.refresh_bare_soil); in the game, the terrain does it once when the room loads.
+func _refresh_soil() -> void:
+	if not Engine.is_editor_hint() or not is_inside_tree():
+		return
+	var room := owner if owner else get_parent()
+	var terrain: TerrainLayout = room.get_node_or_null(^"Terrain") as TerrainLayout if room else null
+	if terrain:
+		terrain.refresh_bare_soil()
 
 
 func _draw() -> void:

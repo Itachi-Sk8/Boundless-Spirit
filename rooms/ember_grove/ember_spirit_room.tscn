@@ -13,12 +13,22 @@
 [ext_resource type="PackedScene" path="res://entities/stone_block.tscn" id="11"]
 [ext_resource type="PackedScene" path="res://entities/sinking_leaf.tscn" id="12"]
 [ext_resource type="PackedScene" path="res://entities/color_orb.tscn" id="13"]
-[ext_resource type="PackedScene" path="res://entities/color_gate.tscn" id="14"]
 [ext_resource type="PackedScene" path="res://entities/leaf_fall.tscn" id="15"]
-[ext_resource type="Texture2D" uid="uid://cmd2e5c5omsrv" path="res://art/props/stone_tall_b.png" id="17_dhasd"]
 [ext_resource type="Texture2D" uid="uid://ii8gysoy5ur6" path="res://art/entities/checkpoint_glow.png" id="18_6m710"]
+[ext_resource type="PackedScene" uid="uid://1vriy6sf8786" path="res://entities/spirit_gate.tscn" id="19_6m710"]
 [ext_resource type="Texture2D" uid="uid://0kapepuui7e8" path="res://art/props/bush_1.png" id="19_nsc13"]
+[ext_resource type="Shader" uid="uid://c5s8lrylfipoa" path="res://shaders/portal.gdshader" id="20_nsc13"]
 [ext_resource type="PackedScene" path="res://entities/thorns.tscn" id="thorns"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_dhasd"]
+resource_local_to_scene = true
+shader = ExtResource("20_nsc13")
+shader_parameter/glow_color = Color(0.89, 0.52, 0.28, 1)
+shader_parameter/speed = 1.4
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_6m710"]
+resource_local_to_scene = true
+size = Vector2(56, 48)
 
 [node name="EmberSpiritRoom" type="Node2D" unique_id=725305812]
 script = ExtResource("1")
@@ -31,184 +41,198 @@ z_index = -20
 [node name="Terrain" type="TileMapLayer" parent="." unique_id=811058063]
 tile_set = ExtResource("3")
 script = ExtResource("2")
-layout = "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-##############........................................................................................%%%%%%%%%%%%%%%%............................%%%%%%%%%%.......................%
-##############........................................................................................%%%%%%%%%%%%%%%%............................%%%%%%%%%%.......................%
-##############..................................................................................................%%%%%%............................%%%%%%%%%%.......................%
-##############.............................................................#####................................%%%%%%............................%%%%%%%%%%.......................%
-##############............................................######...........#####................................%%%%%%............................%%%%%%%%%%.......................%
-###.......................................................######...........#####................................%%%%%%............................%%%%%%%%%%.......................%
-###.......................................................######...........#####......................########..%%%%%%.............................................................%
-###.......................................................######...........#####......................########.....................................................................%
-###.......................................................######...........#####......................########.....................................................................%
-###.......................................................######...........#####......................########.....................................................................%
-..........................................................######...........#####......................########.....................................................................#
-..........................................................######...........#####......................####################....................######......#####.....####...#########
-##############...............................###################...........#####......................####################....................######......#####.....####...#########
-%%%%%%%%%%%%%%...............................#######################################################################################################################################
-%%%%%%%%%%%%%%...............................#######################################################################################################################################"
+layout = "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%##############........................................................................................%%%%%%%%%%%%%%%%............................%%%%%%%%%%.......................%
+%%%%##############........................................................................................%%%%%%%%%%%%%%%%............................%%%%%%%%%%.......................%
+%%%%##############..................................................................................................%%%%%%............................%%%%%%%%%%.......................%
+%%.............................................................................#####................................%%%%%%............................%%%%%%%%%%.......................%
+%%............................................................######...........#####................................%%%%%%............................%%%%%%%%%%.......................%
+%%............................................................######...........#####................................%%%%%%............................%%%%%%%%%%.......................%
+%%............................................................######...........#####......................########..%%%%%%.............................................................%
+%%............................................................######...........#####......................########.....................................................................%
+%%............................................................######...........#####......................########.....................................................................%
+%%............................................................######...........#####......................########.....................................................................%
+%%............................................................######...........#####......................########.....................................................................#
+%%............................................................######...........#####......................####################....................######......#####.....####...#########
+%%################...............................###################...........#####......................####################....................######......#####.....####...#########
+####%%%%%%%%%%%%%%...............................#######################################################################################################################################
+#####%%%%%%%%%%%%%...............................#######################################################################################################################################"
 
 [node name="Decor" type="Node2D" parent="." unique_id=618547002]
 z_index = 1
 
 [node name="StoneTall0" type="Sprite2D" parent="Decor" unique_id=932327408]
-position = Vector2(2787, 135)
+position = Vector2(2851, 135)
 texture = ExtResource("4")
 centered = false
 
 [node name="StoneRound1" type="Sprite2D" parent="Decor" unique_id=1421455470]
-position = Vector2(2294, 162)
+position = Vector2(2358, 162)
 texture = ExtResource("5")
 centered = false
 
 [node name="StoneWide2" type="Sprite2D" parent="Decor" unique_id=1129564452]
-position = Vector2(2750, 182)
+position = Vector2(2814, 182)
 texture = ExtResource("6")
 centered = false
 
 [node name="MushroomSmallC3" type="Sprite2D" parent="Decor" unique_id=1569379973]
-position = Vector2(2753, 204)
+position = Vector2(2817, 204)
 texture = ExtResource("7")
 centered = false
 
 [node name="Fern4" type="Sprite2D" parent="Decor" unique_id=33564674]
-position = Vector2(2492, 201)
+position = Vector2(2556, 201)
 texture = ExtResource("8")
 centered = false
 
 [node name="MushroomSmall5" type="Sprite2D" parent="Decor" unique_id=99636680]
-position = Vector2(1907, 211)
+position = Vector2(1971, 211)
 texture = ExtResource("9")
 centered = false
 
 [node name="PitBlack" type="Polygon2D" parent="." unique_id=955141496]
 z_index = -10
-position = Vector2(80, 39)
+position = Vector2(144, 39)
 color = Color(0, 0, 0, 1)
 polygon = PackedVector2Array(128, 256, 656, 256, 656, 352, 128, 352)
 
 [node name="PitFade" type="Polygon2D" parent="." unique_id=565980550]
 z_index = -10
-position = Vector2(80, 39)
+position = Vector2(144, 39)
 polygon = PackedVector2Array(128, 192, 656, 192, 656, 256, 128, 256)
 vertex_colors = PackedColorArray(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1)
 
 [node name="Hazards" type="Node2D" parent="." unique_id=1446415464]
 
 [node name="Thorns1" parent="Hazards" unique_id=63941348 instance=ExtResource("thorns")]
-position = Vector2(1636, 80)
+position = Vector2(1700, 80)
 length = 8
 adjust_px = -10
 direction = 1
 
 [node name="Thorns2" parent="Hazards" unique_id=1532080038 instance=ExtResource("thorns")]
-position = Vector2(2337, 143)
+position = Vector2(2401, 143)
 length = 10
 adjust_px = -6
 direction = 1
 
 [node name="Thorns3" parent="Hazards" unique_id=1235380586 instance=ExtResource("thorns")]
-position = Vector2(1792, 160)
+position = Vector2(1856, 160)
 length = 6
 direction = 1
 
 [node name="Thorns10" parent="Hazards" unique_id=218618071 instance=ExtResource("thorns")]
-position = Vector2(1752, 213)
+position = Vector2(1816, 213)
 rotation = -1.5707964
 length = 3
 direction = 1
 
 [node name="Thorns4" parent="Hazards" unique_id=466955397 instance=ExtResource("thorns")]
-position = Vector2(1281, 240)
+position = Vector2(1345, 240)
 length = 22
 
 [node name="Thorns5" parent="Hazards" unique_id=1107483510 instance=ExtResource("thorns")]
-position = Vector2(1952, 240)
+position = Vector2(2016, 240)
 length = 20
 
 [node name="Thorns6" parent="Hazards" unique_id=340124630 instance=ExtResource("thorns")]
-position = Vector2(2368, 245)
+position = Vector2(2432, 245)
 length = 6
 
 [node name="Thorns7" parent="Hazards" unique_id=1546184817 instance=ExtResource("thorns")]
-position = Vector2(2544, 245)
+position = Vector2(2608, 245)
 length = 5
 
 [node name="Thorns8" parent="Hazards" unique_id=4547993 instance=ExtResource("thorns")]
-position = Vector2(2688, 244)
+position = Vector2(2752, 244)
 length = 3
 
 [node name="Entities" type="Node2D" parent="." unique_id=181685932]
 z_index = 2
 
 [node name="CrumblePlatform2" parent="Entities" unique_id=499058890 instance=ExtResource("10")]
-position = Vector2(2096, 176)
+position = Vector2(2160, 176)
 
 [node name="CrumblePlatform3" parent="Entities" unique_id=2143330975 instance=ExtResource("10")]
-position = Vector2(582, 240)
+position = Vector2(646, 240)
 
 [node name="CrumblePlatform4" parent="Entities" unique_id=1004219456 instance=ExtResource("10")]
-position = Vector2(316, 240)
+position = Vector2(380, 240)
 
 [node name="StoneBlock1" parent="Entities" unique_id=1807555309 instance=ExtResource("11")]
-position = Vector2(1880, 224)
+position = Vector2(1944, 224)
 
 [node name="SinkingLeaf1" parent="Entities" unique_id=1058681364 instance=ExtResource("12")]
-position = Vector2(1581, 224)
+position = Vector2(1645, 224)
+sink_speed = 40.0
 
 [node name="SinkingLeaf3" parent="Entities" unique_id=1156759535 instance=ExtResource("12")]
-position = Vector2(1450, 218)
+position = Vector2(1514, 218)
+sink_speed = 40.0
 
 [node name="SinkingLeaf4" parent="Entities" unique_id=1035161242 instance=ExtResource("12")]
-position = Vector2(1382, 171)
+position = Vector2(1446, 171)
+sink_speed = 40.0
 
 [node name="SinkingLeaf5" parent="Entities" unique_id=987914751 instance=ExtResource("12")]
-position = Vector2(1307, 120)
+position = Vector2(1371, 120)
+sink_speed = 40.0
 
 [node name="ColorOrb1" parent="Entities" unique_id=1001219302 instance=ExtResource("13")]
-position = Vector2(1113, 225)
-
-[node name="ColorGate1" parent="Entities" unique_id=1576166550 instance=ExtResource("14")]
-position = Vector2(0, 208)
-size_tiles = Vector2i(3, 2)
+position = Vector2(1177, 225)
 
 [node name="StoneTall" type="Sprite2D" parent="Entities" unique_id=146643586]
-position = Vector2(1059, 211)
+position = Vector2(1123, 211)
+texture = ExtResource("4")
+
+[node name="StoneTall2" type="Sprite2D" parent="Entities" unique_id=173611680]
+position = Vector2(1228, 212)
 texture = ExtResource("4")
 
 [node name="Leaves" parent="." unique_id=1275655273 instance=ExtResource("15")]
-position = Vector2(2080, 8)
+position = Vector2(2144, 8)
 amount = 75
 emission_rect_extents = Vector2(800, 4)
 
 [node name="Spawns" type="Node2D" parent="." unique_id=1347818018]
 
 [node name="Start" type="Marker2D" parent="Spawns" unique_id=1360563258]
-position = Vector2(2824, 224)
-
-[node name="StoneTallB" type="Sprite2D" parent="." unique_id=222328604]
-position = Vector2(1164, 217)
-texture = ExtResource("17_dhasd")
+position = Vector2(2888, 224)
 
 [node name="MushroomSmall" type="Sprite2D" parent="." unique_id=1338669131]
-position = Vector2(1092, 249)
+position = Vector2(1156, 249)
 texture = ExtResource("9")
 
 [node name="MushroomSmallC" type="Sprite2D" parent="." unique_id=423551834]
-position = Vector2(1133, 245)
+position = Vector2(1197, 245)
 texture = ExtResource("7")
 
 [node name="CheckpointGlow" type="Sprite2D" parent="." unique_id=1219504981]
 z_index = 2
-position = Vector2(1061, 227)
+position = Vector2(1125, 227)
 texture = ExtResource("18_6m710")
 
 [node name="CheckpointGlow2" type="Sprite2D" parent="." unique_id=1317371236]
-position = Vector2(1166, 228)
+position = Vector2(1230, 218)
 texture = ExtResource("18_6m710")
 
 [node name="Bush1" type="Sprite2D" parent="." unique_id=382496360]
-position = Vector2(815, 218)
+position = Vector2(879, 218)
 texture = ExtResource("19_nsc13")
+
+[node name="SpiritGate1" parent="." unique_id=468884965 instance=ExtResource("19_6m710")]
+position = Vector2(126, 240)
+mode = 1
+
+[node name="Portal" parent="SpiritGate1" index="0" unique_id=2068736270]
+material = SubResource("ShaderMaterial_dhasd")
+offset_left = -44.0
+offset_right = 44.0
+
+[node name="Shape" parent="SpiritGate1/Doorway" parent_id_path=PackedInt32Array(468884965, 455313984) index="0" unique_id=336165879]
+shape = SubResource("RectangleShape2D_6m710")
+
+[editable path="SpiritGate1"]

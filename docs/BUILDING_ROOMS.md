@@ -54,6 +54,24 @@ Gap and ledge sizes come from the **Level-building numbers** in `docs/DESIGN.md`
 feel): a 4-tile ledge is a jump, 10 tiles is a comfortable gap, and so on. Each region should
 ask a bit more than the one before.
 
+### Room size
+
+With the room open, a **yellow outline** shows the room's area and its size in tiles. The rooms
+around it are drawn faintly with their names; wherever this room overlaps one, both turn
+**red**. (The purple rectangle at the top-left is Godot's one-screen guide, not the room.)
+
+To change the size, select the room's root node and open **Room Size** in the Inspector:
+
+- **Add rows on top** / **Remove rows on top**, and the same for the **bottom**, **left**, and
+  **right**. **Resize Step** is how many rows or columns each click adds or takes away.
+- Adding on the top or left moves everything in the room along with the ground and moves the
+  room's **World Origin** the other way, so nothing shifts in the world.
+- Removing rows or columns deletes the ground in them. Every click is one step: **Ctrl+Z**
+  undoes it.
+- A room with a text Layout gains or loses rows and columns of `.` in its Layout. A room painted
+  by hand gets a **Size Tiles** value instead (zero means "as big as the painted tiles").
+- After saving another room, press **Refresh neighbours** to see its new outline.
+
 ## 4. Spawn points
 
 Under **Spawns**, keep **Start** (where new games and Spirit Room restarts begin) and add a
@@ -70,7 +88,7 @@ in the gallery: in the game press F3, then F10, and 0 for all colors.
 
 | Scene | What it does | Inspector settings | Origin |
 | --- | --- | --- | --- |
-| `thorns` | A row of thorns | `length` (tiles), `adjust_px` (a few px longer or shorter), `direction`, `tint` | Top-left of the first tile |
+| `thorns` | A row of thorns; grass under it turns to plain dirt (no grassy top), even as you move it | `length` (tiles), `adjust_px` (a few px longer or shorter), `direction`, `tint` | Top-left of the first tile |
 | `water` | Deep water (rapids) | `size_tiles`, `flow_speed`, `flow_direction` | Top-left |
 | `stalactite` | Shakes and drops when the hero passes beneath | `trigger_depth`, `trigger_half_width`, `regrow_time` | Top center, where it hangs |
 | `falling_log` | The same, as a log lodged overhead | as above | Top center |
@@ -152,7 +170,9 @@ hiding hazards, and make sure safe ground looks safe.
   **Own Color** to give it its own color. Draw new glyphs in `art/gate/runes.png` (16×16 each),
   or point the gate's **Glyph Sheet** at another sheet.
 - **The colors:** **Rune Color**, **Portal Color**, **Portal Speed**, and **Motes Color** in the
-  gate's Inspector.
+  gate's Inspector. **Portal Overhang** sets how far the glow reaches under the stone past the
+  doorway's sides and top (the glow fades at its edges, so this makes it fill the doorway).
+  The portal's size follows the doorway, so set it here rather than resizing the Portal node.
 
 ## Good to know
 

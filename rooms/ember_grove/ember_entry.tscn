@@ -1,65 +1,66 @@
-[gd_scene format=3]
+[gd_scene format=4 uid="uid://cdcbi425c4s5i"]
 
-[ext_resource type="Script" path="res://rooms/room.gd" id="1"]
-[ext_resource type="Script" path="res://rooms/terrain_layout.gd" id="2"]
-[ext_resource type="TileSet" path="res://art/tilesets/forest.tres" id="3"]
-[ext_resource type="Texture2D" path="res://art/props/tree_red_big.png" id="4"]
-[ext_resource type="Texture2D" path="res://art/props/tree_red_medium.png" id="5"]
-[ext_resource type="Texture2D" path="res://art/props/tree_golden_medium.png" id="6"]
-[ext_resource type="Texture2D" path="res://art/props/tree_red_small.png" id="7"]
-[ext_resource type="Texture2D" path="res://art/props/tree_golden_big.png" id="8"]
-[ext_resource type="Texture2D" path="res://art/props/bush_1.png" id="9"]
-[ext_resource type="Texture2D" path="res://art/props/mushroom_big_b.png" id="10"]
-[ext_resource type="Texture2D" path="res://art/props/bush_2.png" id="11"]
-[ext_resource type="Texture2D" path="res://art/props/mushroom_small_c.png" id="12"]
-[ext_resource type="Texture2D" path="res://art/props/fern.png" id="13"]
+[ext_resource type="Script" uid="uid://b74dagl6005we" path="res://rooms/room.gd" id="1"]
+[ext_resource type="Script" uid="uid://cd15ivjl5abiu" path="res://rooms/terrain_layout.gd" id="2"]
+[ext_resource type="TileSet" uid="uid://caqmra0ad1sno" path="res://art/tilesets/forest.tres" id="3"]
+[ext_resource type="Texture2D" uid="uid://dvrph7ty8kv7f" path="res://art/props/tree_red_big.png" id="4"]
+[ext_resource type="Texture2D" uid="uid://btikyax7642nn" path="res://art/props/tree_red_medium.png" id="5"]
+[ext_resource type="Texture2D" uid="uid://cej2qm6d4gl0a" path="res://art/props/tree_golden_medium.png" id="6"]
+[ext_resource type="Texture2D" uid="uid://dlaom0gu18mjc" path="res://art/props/tree_red_small.png" id="7"]
+[ext_resource type="Texture2D" uid="uid://bf7oi86hhma6g" path="res://art/props/tree_golden_big.png" id="8"]
+[ext_resource type="Texture2D" uid="uid://0kapepuui7e8" path="res://art/props/bush_1.png" id="9"]
+[ext_resource type="Texture2D" uid="uid://dpr7texxi8vkx" path="res://art/props/mushroom_big_b.png" id="10"]
+[ext_resource type="Texture2D" uid="uid://kpbnd02jvav8" path="res://art/props/bush_2.png" id="11"]
+[ext_resource type="Texture2D" uid="uid://c4yju2fs7ydq3" path="res://art/props/mushroom_small_c.png" id="12"]
+[ext_resource type="Texture2D" uid="uid://bf1jexygc5v84" path="res://art/props/fern.png" id="13"]
 [ext_resource type="PackedScene" path="res://entities/crumble_platform.tscn" id="14"]
 [ext_resource type="PackedScene" path="res://entities/checkpoint_stone.tscn" id="15"]
 [ext_resource type="PackedScene" path="res://entities/sinking_leaf.tscn" id="16"]
 [ext_resource type="PackedScene" path="res://entities/leaf_fall.tscn" id="17"]
 
-[node name="EmberEntry" type="Node2D"]
+[node name="EmberEntry" type="Node2D" unique_id=1637942883]
 script = ExtResource("1")
 world_origin = Vector2i(137, 0)
 region = "ember_grove"
 
-[node name="Props" type="Node2D" parent="."]
+[node name="Props" type="Node2D" parent="." unique_id=1654302355]
 z_index = -20
 
-[node name="TreeRedBig0" type="Sprite2D" parent="Props"]
+[node name="TreeRedBig0" type="Sprite2D" parent="Props" unique_id=998004226]
 position = Vector2(-13, -202)
 texture = ExtResource("4")
 centered = false
 
-[node name="TreeRedMedium1" type="Sprite2D" parent="Props"]
+[node name="TreeRedMedium1" type="Sprite2D" parent="Props" unique_id=832800563]
 position = Vector2(82, -99)
 texture = ExtResource("5")
 centered = false
 flip_h = true
 
-[node name="TreeGoldenMedium2" type="Sprite2D" parent="Props"]
+[node name="TreeGoldenMedium2" type="Sprite2D" parent="Props" unique_id=1356715197]
 position = Vector2(162, -67)
 texture = ExtResource("6")
 centered = false
 
-[node name="TreeRedBig3" type="Sprite2D" parent="Props"]
+[node name="TreeRedBig3" type="Sprite2D" parent="Props" unique_id=773389111]
 position = Vector2(499, -122)
 texture = ExtResource("4")
 centered = false
 flip_h = true
 
-[node name="TreeRedSmall4" type="Sprite2D" parent="Props"]
+[node name="TreeRedSmall4" type="Sprite2D" parent="Props" unique_id=1607101409]
 position = Vector2(572, 38)
 texture = ExtResource("7")
 centered = false
 
-[node name="TreeGoldenBig5" type="Sprite2D" parent="Props"]
+[node name="TreeGoldenBig5" type="Sprite2D" parent="Props" unique_id=613392006]
 position = Vector2(707, -122)
 texture = ExtResource("8")
 centered = false
 flip_h = true
 
-[node name="Terrain" type="TileMapLayer" parent="."]
+[node name="Terrain" type="TileMapLayer" parent="." unique_id=1728292276]
+tile_map_data = PackedByteArray("AAAAAAoAAAACAAIAAAABAAoAAAABAAAAAAACAAoAAAACAAIAAAADAAoAAAABAAAAAAAEAAoAAAABAAAAAAAFAAoAAAAJAAAAAAAAAAsAAAAAAAAAAAABAAsAAAAAAAIAAAACAAsAAAAAAAAAAAADAAsAAAAAAAIAAAAEAAsAAAAAAAAAAAAFAAsAAAAIAAAAAAAAAAwAAAAAAAAAAAABAAwAAAAAAAAAAAACAAwAAAAAAAIAAAADAAwAAAAAAAAAAAAEAAwAAAAAAAAAAAAFAAwAAAAIAAAAAAAAAA0AAAABAAIAAAABAA0AAAAAAAAAAAACAA0AAAAAAAAAAAADAA0AAAAAAAAAAAAEAA0AAAABAAIAAAAFAA0AAAAAAAAAAAAGAA0AAAABAAAAAAAHAA0AAAABAAAAAAAIAA0AAAADAAIAAAAJAA0AAAAJAAAAAAAAAA4AAAAAAAAAAAABAA4AAAABAAIAAAACAA4AAAAAAAIAAAADAA4AAAABAAIAAAAEAA4AAAAAAAAAAAAFAA4AAAABAAIAAAAGAA4AAAAAAAAAAAAHAA4AAAABAAIAAAAIAA4AAAAAAAIAAAAJAA4AAAAIAAAAAAAAAA8AAAAAAAAAAAABAA8AAAAAAAAAAAACAA8AAAABAAIAAAADAA8AAAAAAAAAAAAEAA8AAAABAAIAAAAFAA8AAAAAAAIAAAAGAA8AAAAAAAAAAAAHAA8AAAAAAAAAAAAIAA8AAAABAAIAAAAJAA8AAAAAAAIAAAAKAA8AAAABAAAAAAALAA8AAAABAAAAAAAMAA8AAAADAAIAAAANAA8AAAABAAAAAAAOAA8AAAABAAAAAAAPAA8AAAACAAIAAAAQAA8AAAADAAIAAAARAA8AAAAJAAAAAAAgAA8AAAAFAAAAAAAhAA8AAAABAAAAAAAiAA8AAAABAAAAAAAjAA8AAAABAAAAAAAkAA8AAAABAAAAAAAlAA8AAAABAAAAAAAmAA8AAAABAAAAAAAnAA8AAAAJAAAAAAAtAA8AAAAFAAAAAAAuAA8AAAADAAIAAAAvAA8AAAABAAAAAAAwAA8AAAADAAIAAAAxAA8AAAACAAIAAAAAABAAAAAAAAIAAAABABAAAAAAAAAAAAACABAAAAAAAAAAAAADABAAAAABAAIAAAAEABAAAAAAAAAAAAAFABAAAAAAAAAAAAAGABAAAAAAAAIAAAAHABAAAAAAAAAAAAAIABAAAAAAAAAAAAAJABAAAAABAAIAAAAKABAAAAAAAAIAAAALABAAAAABAAIAAAAMABAAAAAAAAAAAAANABAAAAABAAIAAAAOABAAAAAAAAAAAAAPABAAAAABAAIAAAAQABAAAAAAAAIAAAARABAAAAAIAAAAAAAgABAAAAAEAAAAAAAhABAAAAAAAAAAAAAiABAAAAAAAAIAAAAjABAAAAAAAAAAAAAkABAAAAAAAAAAAAAlABAAAAAAAAAAAAAmABAAAAAAAAAAAAAnABAAAAAIAAAAAAAtABAAAAAEAAAAAAAuABAAAAAAAAIAAAAvABAAAAAAAAAAAAAwABAAAAAAAAAAAAAxABAAAAAAAAAAAAAAABEAAAAAAAAAAAABABEAAAAAAAIAAAACABEAAAAAAAAAAAADABEAAAAAAAAAAAAEABEAAAAAAAAAAAAFABEAAAAAAAAAAAAGABEAAAAAAAAAAAAHABEAAAAAAAAAAAAIABEAAAAAAAAAAAAJABEAAAAAAAAAAAAKABEAAAAAAAAAAAALABEAAAAAAAIAAAAMABEAAAAAAAAAAAANABEAAAAAAAIAAAAOABEAAAAAAAAAAAAPABEAAAAAAAAAAAAQABEAAAAAAAAAAAARABEAAAAIAAAAAAAgABEAAAAEAAAAAAAhABEAAAAAAAAAAAAiABEAAAABAAIAAAAjABEAAAAAAAAAAAAkABEAAAAAAAAAAAAlABEAAAAAAAAAAAAmABEAAAAAAAAAAAAnABEAAAAAAAAAAAAoABEAAAABAAAAAAApABEAAAABAAAAAAAqABEAAAADAAIAAAArABEAAAACAAIAAAAsABEAAAADAAIAAAAtABEAAAAAAAAAAAAuABEAAAABAAIAAAAvABEAAAAAAAAAAAAwABEAAAABAAIAAAAxABEAAAAAAAIAAAAAABIAAAAAAAIAAAABABIAAAAAAAAAAAACABIAAAAAAAAAAAADABIAAAABAAIAAAAEABIAAAAAAAIAAAAFABIAAAAAAAAAAAAGABIAAAAAAAIAAAAHABIAAAAAAAAAAAAIABIAAAAAAAAAAAAJABIAAAABAAIAAAAKABIAAAAAAAIAAAALABIAAAABAAIAAAAMABIAAAAAAAIAAAANABIAAAABAAIAAAAOABIAAAAAAAAAAAAPABIAAAAAAAAAAAAQABIAAAAAAAIAAAARABIAAAAIAAAAAAAgABIAAAAEAAAAAAAhABIAAAAAAAAAAAAiABIAAAAAAAIAAAAjABIAAAAAAAAAAAAkABIAAAAAAAAAAAAlABIAAAAAAAAAAAAmABIAAAAAAAAAAAAnABIAAAAAAAAAAAAoABIAAAAAAAAAAAApABIAAAABAAIAAAAqABIAAAAAAAAAAAArABIAAAAAAAAAAAAsABIAAAAAAAAAAAAtABIAAAAAAAAAAAAuABIAAAAAAAAAAAAvABIAAAAAAAAAAAAwABIAAAAAAAAAAAAxABIAAAAAAAAAAAAAABMAAAAAAAAAAAABABMAAAAAAAAAAAACABMAAAAAAAAAAAADABMAAAAAAAAAAAAEABMAAAABAAIAAAAFABMAAAAAAAIAAAAGABMAAAABAAIAAAAHABMAAAAAAAAAAAAIABMAAAAAAAAAAAAJABMAAAAAAAAAAAAKABMAAAABAAIAAAALABMAAAAAAAIAAAAMABMAAAAAAAAAAAANABMAAAAAAAAAAAAOABMAAAAAAAAAAAAPABMAAAAAAAIAAAAQABMAAAABAAIAAAARABMAAAAIAAAAAAAgABMAAAAEAAAAAAAhABMAAAAAAAIAAAAiABMAAAAAAAAAAAAjABMAAAAAAAAAAAAkABMAAAABAAIAAAAlABMAAAAAAAIAAAAmABMAAAAAAAAAAAAnABMAAAAAAAAAAAAoABMAAAABAAIAAAApABMAAAAAAAAAAAAqABMAAAAAAAAAAAArABMAAAAAAAAAAAAsABMAAAABAAIAAAAtABMAAAAAAAIAAAAuABMAAAAAAAAAAAAvABMAAAAAAAAAAAAwABMAAAABAAIAAAAxABMAAAAAAAAAAAA=")
 tile_set = ExtResource("3")
 script = ExtResource("2")
 layout = "..................................................
@@ -83,81 +84,73 @@ layout = "..................................................
 ##################..............##################
 ##################..............##################"
 
-[node name="Decor" type="Node2D" parent="."]
+[node name="Decor" type="Node2D" parent="." unique_id=1157864881]
 z_index = 1
 
-[node name="Bush10" type="Sprite2D" parent="Decor"]
-position = Vector2(10, 118)
+[node name="Bush10" type="Sprite2D" parent="Decor" unique_id=756566827]
+position = Vector2(0, 118)
+scale = Vector2(0.7177419, 1)
 texture = ExtResource("9")
 centered = false
 
-[node name="MushroomBigB1" type="Sprite2D" parent="Decor"]
+[node name="MushroomBigB1" type="Sprite2D" parent="Decor" unique_id=629892720]
+z_index = 1
 position = Vector2(170, 209)
 texture = ExtResource("10")
 centered = false
 
-[node name="Bush22" type="Sprite2D" parent="Decor"]
-position = Vector2(202, 198)
+[node name="Bush22" type="Sprite2D" parent="Decor" unique_id=1992099146]
+position = Vector2(161, 197)
 texture = ExtResource("11")
 centered = false
 
-[node name="MushroomSmallC3" type="Sprite2D" parent="Decor"]
+[node name="MushroomSmallC3" type="Sprite2D" parent="Decor" unique_id=1356700798]
 position = Vector2(529, 220)
 texture = ExtResource("12")
 centered = false
 
-[node name="Fern4" type="Sprite2D" parent="Decor"]
+[node name="Fern4" type="Sprite2D" parent="Decor" unique_id=97862202]
 position = Vector2(728, 216)
 texture = ExtResource("13")
 centered = false
 
-[node name="Bush15" type="Sprite2D" parent="Decor"]
+[node name="Bush15" type="Sprite2D" parent="Decor" unique_id=480214973]
 position = Vector2(538, 198)
+scale = Vector2(0.7983871, 1)
 texture = ExtResource("9")
 centered = false
 
-[node name="Entities" type="Node2D" parent="."]
+[node name="Entities" type="Node2D" parent="." unique_id=967398059]
 z_index = 2
 
-[node name="CrumblePlatform1" parent="Entities" instance=ExtResource("14")]
-position = Vector2(304, 208)
-width_tiles = 3
-
-[node name="CrumblePlatform2" parent="Entities" instance=ExtResource("14")]
+[node name="CrumblePlatform2" parent="Entities" unique_id=637829554 instance=ExtResource("14")]
 position = Vector2(384, 192)
-width_tiles = 3
 
-[node name="CrumblePlatform3" parent="Entities" instance=ExtResource("14")]
-position = Vector2(464, 208)
-width_tiles = 3
-
-[node name="CheckpointStone1" parent="Entities" instance=ExtResource("15")]
+[node name="CheckpointStone1" parent="Entities" unique_id=2085929590 instance=ExtResource("15")]
 position = Vector2(568, 240)
 
-[node name="SinkingLeaf1" parent="Entities" instance=ExtResource("16")]
+[node name="SinkingLeaf1" parent="Entities" unique_id=1238700368 instance=ExtResource("16")]
 position = Vector2(680, 240)
 max_sink = 30.0
 
-[node name="Signs" type="Node2D" parent="."]
+[node name="Signs" type="Node2D" parent="." unique_id=820442265]
 z_index = 2
 
-[node name="Sign1" type="Label" parent="Signs"]
+[node name="Sign1" type="Label" parent="Signs" unique_id=1503958397]
 offset_left = 16.0
 offset_top = 96.0
-mouse_filter = 2
 theme_override_colors/font_color = Color(0.92, 0.9, 0.84, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 text = "EMBER GROVE"
 
-[node name="Leaves" parent="." instance=ExtResource("17")]
+[node name="Leaves" parent="." unique_id=432468469 instance=ExtResource("17")]
 position = Vector2(400, -8)
 amount = 37
-emission_rect_extents = Vector2(400, 4)
 
-[node name="Spawns" type="Node2D" parent="."]
+[node name="Spawns" type="Node2D" parent="." unique_id=1024972702]
 
-[node name="West" type="Marker2D" parent="Spawns"]
+[node name="West" type="Marker2D" parent="Spawns" unique_id=192816193]
 position = Vector2(40, 160)
 
-[node name="East" type="Marker2D" parent="Spawns"]
+[node name="East" type="Marker2D" parent="Spawns" unique_id=1889953960]
 position = Vector2(760, 240)

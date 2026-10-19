@@ -7,7 +7,7 @@ size = Vector2(16, 16)
 
 [node name="PushBlock" type="CharacterBody2D"]
 collision_layer = 16
-collision_mask = 25
+collision_mask = 27
 script = ExtResource("1_block")
 
 [node name="Shape" type="CollisionShape2D" parent="."]
