@@ -14,6 +14,7 @@
 [ext_resource type="Script" path="res://ui/speedrun_timer.gd" id="13_timer"]
 [ext_resource type="PackedScene" path="res://ui/pause_menu.tscn" id="14_pause"]
 [ext_resource type="PackedScene" path="res://ui/map_screen.tscn" id="15_map"]
+[ext_resource type="PackedScene" path="res://ui/travel_menu.tscn" id="16_travel"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_main")
@@ -97,3 +98,6 @@ game = NodePath("..")
 [node name="PauseMenu" parent="." node_paths=PackedStringArray("game", "map_screen") instance=ExtResource("14_pause")]
 game = NodePath("..")
 map_screen = NodePath("../MapScreen")
+
+[node name="TravelMenu" parent="." node_paths=PackedStringArray("game") instance=ExtResource("16_travel")]
+game = NodePath("..")

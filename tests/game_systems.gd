@@ -2,8 +2,8 @@ extends Node
 ## Checks the game's systems through the real game scene: the world map matches the rooms,
 ## checkpoints set the respawn point, Spirit Rooms stand apart from the world, their gates take
 ## the hero in and back out, and they restart from their start and count deaths,
-## crumbling ledges and leaves behave and reset, region color follows the colors, and saves
-## round-trip. Uses save slot 9 and deletes it afterwards.
+## crumbling ledges and leaves behave and reset, region color follows the colors, waystones
+## wake with their color and travel between the Hollow and the regions, and saves round-trip. Uses save slot 9 and deletes it afterwards.
 ##
 ## Run from the repo root:
 ##   godot --headless --path . --fixed-fps 60 res://tests/game_systems.tscn
@@ -38,6 +38,7 @@ func _run() -> void:
 	await test_push_pin()
 	await test_spirit_door()
 	await test_menus()
+	await test_waystones()
 	await test_save_round_trip()
 	GameState.delete_save()
 	await frames(5)
@@ -59,7 +60,7 @@ func test_world_map() -> void:
 			and WorldMap.is_spirit_room(&"ember_spirit_room"), str(spirit))
 	var door := WorldMap.door_into(&"ember_spirit_room")
 	check("the entrance gate in Ember Gate is read as the way in", door.get("room") == &"ember_gate"
-			and door["spot"] == WorldMap.rect_px(&"ember_gate").position + Vector2(466, 288), str(door))
+			and door["spot"] == WorldMap.rect_px(&"ember_gate").position + Vector2(466, 368), str(door))
 	# A room painted by hand (Layout left empty) is measured by its painted tiles.
 	var painted: Room = load(WorldMap.scene_of(&"hollow_east")).instantiate()
 	add_child(painted)
@@ -484,6 +485,85 @@ func test_menus() -> void:
 	var gate: SpiritGate = main.room.find_children("*", "SpiritGate", true, false)[0]
 	check("Leave Spirit Room puts the hero back at its gate", main.room.room_id == &"ember_gate"
 			and hero.global_position.distance_to(gate.global_position) < 2.0 and not get_tree().paused, str(hero.global_position))
+
+
+func test_waystones() -> void:
+	GameState.set_all_colors(false)
+	var stops := WorldMap.travel_stops()
+	check("the world map knows where travel goes: the Hollow first, then each region's waystone",
+			stops.size() >= 3 and stops[0]["kind"] == Waystone.Kind.HOLLOW and stops[0]["room"] == &"hollow_clearing"
+			and stops.any(func(stop: Dictionary) -> bool: return stop["room"] == &"ember_gate" and stop["color"] == 0)
+			and stops.any(func(stop: Dictionary) -> bool: return stop["room"] == &"meadow_gate" and stop["color"] == 1),
+			str(stops))
+	# Checkpoint stones carry their region's rune.
+	var glyphs := {}
+	for id: StringName in [&"ember_entry", &"meadow_breakers"]:
+		var room: Room = load(WorldMap.scene_of(id)).instantiate()
+		add_child(room)
+		glyphs[id] = (room.find_children("*", "CheckpointStone", true, false)[0] as CheckpointStone).rune.glyph
+		room.free()
+	check("checkpoint stones carry their region's rune, different from region to region",
+			glyphs[&"ember_entry"] == CheckpointStone.REGION_GLYPHS[&"ember_grove"]
+			and glyphs[&"meadow_breakers"] == CheckpointStone.REGION_GLYPHS[&"meadow"]
+			and glyphs[&"ember_entry"] != glyphs[&"meadow_breakers"], str(glyphs))
+	# The Hollow: a center stone and a ring of six, each with its own rune.
+	main._enter_world_room(&"hollow_clearing", Vector2(272, 240))
+	await frames(5)
+	var stones := main.room.find_children("*", "Waystone", true, false)
+	var runes := {}
+	for stone: Waystone in stones:
+		runes[stone.rune.glyph] = true
+	var center: Waystone = stones.filter(func(stone: Waystone) -> bool: return stone.kind == Waystone.Kind.HOLLOW)[0]
+	var orange: Waystone = stones.filter(func(stone: Waystone) -> bool:
+		return stone.kind == Waystone.Kind.RING and stone.color == GameState.SpiritColor.ORANGE)[0]
+	check("the Hollow has its center stone and six region stones, each with its own rune",
+			stones.size() == 7 and runes.size() == 7, "%d stones, %d runes" % [stones.size(), runes.size()])
+	check("  with no colors back, only the center stone is awake",
+			stones.filter(func(stone: Waystone) -> bool: return stone.is_awake()).size() == 1 and center.is_awake(), "")
+	check("standing at the center stone shows the Interact key", center.hint.visible and not orange.hint.visible, "")
+	await press(&"interact")
+	await frames(2)
+	check("Interact opens the travel menu and pauses, with nowhere to go yet", main.travel_menu.is_open
+			and get_tree().paused and main.travel_menu.info.text.begins_with("No other"), main.travel_menu.info.text)
+	await press(&"ui_cancel")
+	await frames(3)
+	check("  and Esc closes it without opening the pause menu", not main.travel_menu.is_open
+			and not get_tree().paused and not main.pause_menu.is_open, "")
+	GameState.set_color(GameState.SpiritColor.ORANGE, true)
+	await frames(2)
+	check("orange wakes the orange ring stone, glowing orange, and only it", orange.is_awake()
+			and orange.rune.color == ColorOrb.TINTS[0] and orange.rune.brightness > 0.5
+			and stones.filter(func(stone: Waystone) -> bool: return stone.is_awake()).size() == 2, "")
+	await press(&"interact")
+	await frames(2)
+	check("the menu now offers Ember Grove, then Stay", main.travel_menu.menu._rows.size() == 2
+			and main.travel_menu.menu._labels[0].text.contains("Ember Grove"), main.travel_menu.menu._labels[0].text)
+	await press(&"ui_accept")
+	var arrived := await until(func() -> bool: return main.room.room_id == &"ember_gate" and not main.transitioning, 180)
+	var ember: Waystone = main.room.find_children("*", "Waystone", true, false)[0]
+	check("picking it travels to Ember Grove's waystone, by its gate", arrived
+			and hero.global_position.distance_to(ember.global_position) < 2.0, "%s at %s" % [main.room.room_id, hero.global_position])
+	check("  which is awake, and where a death now respawns", ember.is_awake()
+			and GameState.respawn_position.distance_to(ember.global_position) < 2.0, str(GameState.respawn_position))
+	await frames(3)
+	await press(&"interact")
+	await frames(2)
+	check("its menu offers the Hollow", main.travel_menu.is_open
+			and main.travel_menu.menu._labels[0].text.contains("The Hollow"), main.travel_menu.menu._labels[0].text)
+	await press(&"ui_accept")
+	var home := await until(func() -> bool: return main.room.room_id == &"hollow_clearing" and not main.transitioning, 180)
+	check("  and takes the hero home to the center stone", home
+			and hero.global_position.distance_to(center.global_position if is_instance_valid(center) else Vector2(272, 240)) < 2.0,
+			str(hero.global_position))
+	# Asleep, a region stone is still a checkpoint.
+	main._enter_world_room(&"meadow_gate", Vector2(600, 240))
+	await frames(3)
+	var meadow: Waystone = main.room.find_children("*", "Waystone", true, false)[0]
+	hero.global_position = meadow.global_position
+	await frames(5)
+	check("the Meadow's stone sleeps without yellow, but works as a checkpoint", not meadow.is_awake()
+			and meadow.lit and not meadow.hint.visible, "")
+	GameState.set_all_colors(false)
 
 
 func test_save_round_trip() -> void:

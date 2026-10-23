@@ -1,7 +1,8 @@
 extends Node
 ## Plays the whole vertical slice start to finish through the real game, like a careful player:
 ## the Hollow, Ember Grove, the Spirit Room's gate, the orange unlock, leaving back through the
-## gate, and the dash across the Hollow's gap to the end room. Fails at the first segment it
+## gate, and the dash across the Hollow's gap to Sunlit Meadow (tests/meadow_playthrough.tscn
+## plays on from there). Fails at the first segment it
 ## can't clear. For now it skips the Spirit Room's run (it steps straight to the orb, until the
 ## room settles) and the walk home from Ember Gate (it starts again at the Hollow clearing).
 ## Uses save slot 9 and deletes it afterwards.
@@ -56,7 +57,10 @@ func _run() -> void:
 
 func hollow_clearing_east() -> void:
 	check("starts in the Hollow clearing", main.room.room_id == &"hollow_clearing", str(main.room.room_id))
-	# The clearing is open, flat ground: just run east.
+	# Up the steps of the waystone ring, over the hollow at the great tree's foot, and east.
+	await leap(144.0, 224.0, "up the first step of the ring")
+	await leap(208.0, 208.0, "up the second")
+	await leap(328.0, 208.0, "over the hollow at the tree's foot")
 	await run_until_room(&"hollow_east", 1.0)
 
 
@@ -104,7 +108,22 @@ func ember_climb() -> void:
 	await run_to(4458.0)
 	await leap(4552.0, 96.0, "onto the right-hand ledge")
 	await leap(4440.0, 32.0, "back up onto the end of the shelf")
-	await leap(4376.0, -32.0, "up onto the block over the shelf")
+	if _aborted:
+		return
+	# The block over the shelf is too high to jump to: pull the stone out from under the
+	# overhang to the shelf's open end and climb up from it.
+	var stone: PushBlock = main.room.find_children("*", "PushBlock", true, false)[0]
+	_hold(&"move_left")
+	await until(func() -> bool: return hero.adjacent_block(-1) == stone, 300)
+	_release(&"move_left")
+	_hold(&"grab")
+	_hold(&"move_right")
+	await until(func() -> bool: return stone.global_position.x >= 4428.0, 600)
+	_release_all()
+	check("pulled the stone out to the end of the shelf", absf(stone.global_position.x - 4428.0) < 2.0,
+			"stone at %.1f" % stone.global_position.x)
+	await leap(4428.0, 16.0, "onto the stone")
+	await leap(4400.0, -48.0, "up onto the block over the shelf")
 	await run_to(4285.0)
 	await leap(4216.0, -64.0, "onto the step under the crumbling ledges")
 	if _aborted:
@@ -226,9 +245,6 @@ func dash_gap() -> void:
 func meadow_end() -> void:
 	await run_until_room(&"meadow_edge", -1.0)
 	await run_to(-830.0)
-	await frames(10)
-	check("the end message shows", main.prompt.modulate.a > 0.1 and main.prompt.text.contains("Thanks for playing"),
-			main.prompt.text)
 
 
 # --- Moves ---------------------------------------------------------------------------------

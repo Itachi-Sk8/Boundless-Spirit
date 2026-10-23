@@ -58,6 +58,7 @@ var _cascading := false
 @onready var debug_overlay: CanvasLayer = $DebugOverlay
 @onready var pause_menu: PauseMenu = $PauseMenu
 @onready var map_screen: MapScreen = $MapScreen
+@onready var travel_menu: TravelMenu = $TravelMenu
 
 
 func _enter_tree() -> void:
@@ -123,7 +124,27 @@ func _physics_process(_delta: float) -> void:
 ## The pause menu and map can open: not during room changes, popups, or the color unlock.
 func can_pause() -> bool:
 	return room != null and not transitioning and not player.frozen and not player.input_locked \
-			and not confirm.visible
+			and not confirm.visible and not travel_menu.is_open
+
+
+## A waystone can open the travel menu: not in a Spirit Room, nor when the game can't pause.
+func can_travel() -> bool:
+	return can_pause() and not room.spirit_room
+
+
+## Called by an awake waystone when the hero presses Interact at it.
+func open_travel(_stone: Waystone) -> void:
+	if can_travel():
+		travel_menu.open()
+
+
+## Go to a waystone (from the travel menu): room `id`, arriving at `spot` in world px, behind
+## the letterbox.
+func travel_to(id: StringName, spot: Vector2) -> void:
+	if transitioning:
+		return
+	Sfx.play(&"respawn")
+	await _travel(id, &"", spot)
 
 
 ## True during a Spirit Room run (until its color is taken).

@@ -10,7 +10,8 @@ What it makes:
 - art/props/: trees, bushes, mushrooms, flowers, stones, the leaf platform.
 - art/backgrounds/: the sky and two seamless strips of distant forest for parallax.
 - art/ui/: the parchment and wood panels and the clock, skull, and trophy icons.
-- art/entities/: rune glyphs (for the Spirit Room archway), checkpoint stone, gate, boulder.
+- art/entities/: rune glyphs (for the Spirit Room archway), checkpoint stone (carved, and
+  uncarved for the per-region runes), gate, boulder.
 - art/creatures/ and art/objects/: see tools/art_objects.py.
 """
 import os
@@ -399,6 +400,8 @@ def build_entities():
     rocks = forest("Assets", "Props-Rocks.png")
     stone = trim(crop(rocks, 112, 192, 156, 256))
     sw, sh = len(stone[0]), len(stone)
+    # The same stone uncarved: the game draws each region's rune on it (CheckpointStone).
+    save(out_path("entities", "checkpoint_stone.png"), stone)
     off = [row[:] for row in stone]
     rx, ry = sw // 2 - 8, sh // 3 - 8
     paste(off, recolor(rune(2, False), lambda p: (44, 34, 28, 220)), rx, ry)

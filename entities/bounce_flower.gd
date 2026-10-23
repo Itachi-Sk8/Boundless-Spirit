@@ -44,9 +44,10 @@ func _physics_process(delta: float) -> void:
 	var rect := Touch.shape_rect(shape_node)
 	for body in get_overlapping_bodies():
 		var hero := body as Player
-		# Only from above: falling or standing, feet near the top of the petals.
+		# Only from above: falling, or walking on the ground it grows from (feet no lower than
+		# its base), never rising up through it.
 		if hero and Touch.hero_in(hero, rect) and hero.velocity.y >= 0.0 and not hero.frozen \
-				and hero.state_name != &"dead" and hero.global_position.y <= rect.end.y:
+				and hero.state_name != &"dead" and hero.global_position.y <= global_position.y + 0.5:
 			hero.global_position.y = global_position.y - 8.0
 			hero.launch(launch_speed, refills)
 			Sfx.play(&"bounce")

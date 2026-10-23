@@ -1,7 +1,8 @@
 class_name DashEmber
 extends Area2D
 ## A glowing ember that refills the dash in midair. Goes dark once used and relights
-## after a moment.
+## after a moment. Always drawn in full color, with a soft halo while lit, so it stands out
+## in a grey world.
 
 @export var relight_time := 2.0
 @export var lit_color := Color(0.87, 0.44, 0.15)
@@ -13,6 +14,7 @@ var _dark_left := 0.0
 
 func _ready() -> void:
 	add_to_group(&"room_reset")
+	add_to_group(&"full_color")
 
 
 func _physics_process(delta: float) -> void:
@@ -40,6 +42,9 @@ func _set_lit(lit: bool) -> void:
 
 func _draw() -> void:
 	var color := lit_color if _lit else dark_color
+	if _lit:
+		draw_circle(Vector2.ZERO, 9.0, Color(lit_color, 0.18))
+		draw_circle(Vector2.ZERO, 6.5, Color(lit_color, 0.25))
 	var points := PackedVector2Array([Vector2(0, -6), Vector2(5, 0), Vector2(0, 6), Vector2(-5, 0)])
 	draw_colored_polygon(points, color)
 	if _lit:

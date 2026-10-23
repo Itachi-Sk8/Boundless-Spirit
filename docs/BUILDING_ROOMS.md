@@ -112,7 +112,8 @@ in the gallery: in the game press F3, then F10, and 0 for all colors.
 | `vines` | Climbable with purple (hold Grab) | `length` | Top-left of the top tile |
 | `spirit_barrier` | Solid, but the spirit flies through (blue) | `size_tiles`, `tint` | Top-left |
 | `dash_ember` | Refills the dash in midair | `relight_time` | Center |
-| `checkpoint_stone` | Respawn point in a long room (ignored in Spirit Rooms) | | Bottom center |
+| `checkpoint_stone` | Respawn point in a long room (ignored in Spirit Rooms); carries its region's rune automatically | `glyph` (another rune, 0–23; -1 = the region's) | Bottom center |
+| `waystone` | Tall runed stone for travel. **Region** (one beside each Spirit Gate): a checkpoint that glows in its `color` once that color returns, then Interact opens the travel menu. **Ring**: one of the Hollow's six. **Hollow**: the Hollow's center stone, where travel home arrives | `kind`, `color` (0 orange … 5 blue) | Bottom center |
 | `shortcut_gate` | Opens from one side only, for good | `flag`, `opens_from` | Bottom center |
 | `color_gate` | Rock wall that falls when its color returns (shows a faint trace of it) | `color`, `size_tiles` | Top-left |
 | `message_trigger` | Shows a line of text the first time it's walked through | `text`, `seconds`, `size` | Center |

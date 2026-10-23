@@ -16,6 +16,7 @@
 [ext_resource type="Texture2D" uid="uid://bf1jexygc5v84" path="res://art/props/fern.png" id="14"]
 [ext_resource type="Texture2D" uid="uid://c7agrf3fvy0yo" path="res://art/props/lavender.png" id="15_hhhgu"]
 [ext_resource type="Texture2D" uid="uid://0kapepuui7e8" path="res://art/props/bush_1.png" id="16_8yfk3"]
+[ext_resource type="PackedScene" path="res://entities/waystone.tscn" id="waystone_1"]
 
 [node name="HollowClearing" type="Node2D" unique_id=1620190445]
 script = ExtResource("1")
@@ -78,8 +79,8 @@ layout = "............................................................
 ............................................................
 ............................................................
 ............................................................
-............................................................
-............................................................
+...........####....####.....................................
+.......########....########.................................
 ############################################################
 ############################################################
 ############################################################
@@ -90,27 +91,27 @@ layout = "............................................................
 z_index = 1
 
 [node name="Bush20" type="Sprite2D" parent="Decor" unique_id=310914809]
-position = Vector2(167, 198)
+position = Vector2(500, 198)
 texture = ExtResource("9")
 centered = false
 
 [node name="Bush41" type="Sprite2D" parent="Decor" unique_id=381227637]
-position = Vector2(266, 198)
+position = Vector2(620, 198)
 texture = ExtResource("10")
 centered = false
 
 [node name="StoneRound2" type="Sprite2D" parent="Decor" unique_id=19873383]
-position = Vector2(102, 178)
+position = Vector2(8, 178)
 texture = ExtResource("11")
 centered = false
 
 [node name="MushroomBig3" type="Sprite2D" parent="Decor" unique_id=1611325652]
-position = Vector2(201, 216)
+position = Vector2(660, 216)
 texture = ExtResource("12")
 centered = false
 
 [node name="MushroomSmallB4" type="Sprite2D" parent="Decor" unique_id=405691535]
-position = Vector2(337, 226)
+position = Vector2(700, 226)
 texture = ExtResource("13")
 centered = false
 
@@ -135,6 +136,39 @@ texture = ExtResource("16_8yfk3")
 
 [node name="Entities" type="Node2D" parent="." unique_id=61726941]
 z_index = 2
+
+[node name="HollowStone" parent="Entities" instance=ExtResource("waystone_1")]
+position = Vector2(272, 240)
+kind = 2
+
+[node name="OrangeStone" parent="Entities" instance=ExtResource("waystone_1")]
+position = Vector2(80, 240)
+kind = 1
+
+[node name="YellowStone" parent="Entities" instance=ExtResource("waystone_1")]
+position = Vector2(144, 224)
+kind = 1
+color = 1
+
+[node name="GreenStone" parent="Entities" instance=ExtResource("waystone_1")]
+position = Vector2(208, 208)
+kind = 1
+color = 2
+
+[node name="RedStone" parent="Entities" instance=ExtResource("waystone_1")]
+position = Vector2(336, 208)
+kind = 1
+color = 3
+
+[node name="PurpleStone" parent="Entities" instance=ExtResource("waystone_1")]
+position = Vector2(400, 224)
+kind = 1
+color = 4
+
+[node name="BlueStone" parent="Entities" instance=ExtResource("waystone_1")]
+position = Vector2(464, 240)
+kind = 1
+color = 5
 
 [node name="Signs" type="Node2D" parent="." unique_id=1181365758]
 z_index = 2

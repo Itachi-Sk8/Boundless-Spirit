@@ -1,0 +1,57 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://entities/waystone.gd" id="1_waystone"]
+[ext_resource type="Texture2D" path="res://art/props/stone_tall.png" id="2_stone"]
+[ext_resource type="Script" path="res://entities/rune.gd" id="3_rune"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_touch"]
+size = Vector2(28, 40)
+
+[node name="Waystone" type="Area2D"]
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+script = ExtResource("1_waystone")
+
+[node name="Stone" type="Sprite2D" parent="."]
+show_behind_parent = true
+texture = ExtResource("2_stone")
+centered = false
+offset = Vector2(-21, -87)
+
+[node name="Rune" type="Node2D" parent="."]
+position = Vector2(-7, -49)
+script = ExtResource("3_rune")
+glyph = 12
+brightness = 1.0
+
+[node name="Motes" type="CPUParticles2D" parent="." groups=["full_color"]]
+z_index = 1
+position = Vector2(0, -41)
+emitting = false
+amount = 8
+lifetime = 2.0
+preprocess = 2.0
+emission_shape = 3
+emission_rect_extents = Vector2(12, 16)
+direction = Vector2(0, -1)
+spread = 20.0
+gravity = Vector2(0, -8)
+initial_velocity_min = 3.0
+initial_velocity_max = 7.0
+
+[node name="Hint" type="Label" parent="."]
+visible = false
+z_index = 10
+offset_left = -12.0
+offset_top = -104.0
+offset_right = 12.0
+offset_bottom = -90.0
+theme_override_colors/font_color = Color(0.92, 0.9, 0.84, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+text = "C"
+horizontal_alignment = 1
+
+[node name="Shape" type="CollisionShape2D" parent="."]
+position = Vector2(0, -20)
+shape = SubResource("RectangleShape2D_touch")

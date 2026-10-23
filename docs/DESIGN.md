@@ -189,7 +189,8 @@ Dying is instant and cheap everywhere; only the respawn point differs between th
 | Death to control again | Under 0.5 s | Under 0.5 s |
 | What is lost | Nothing | The current run |
 
-- **Checkpoint stones** (working name) mark respawn points inside long main-map rooms. Passing one is enough to set it.
+- **Checkpoint stones** (working name) mark respawn points inside long main-map rooms. Passing one is enough to set it. Every stone in a region carries that region's rune, so the stones of one region match and the next region's look different.
+- **Waystones** stand beside each Spirit Gate and in a ring in the Hollow; they're the fast travel (see "Waystones and travel").
 - **Rooms reset on death.** Pushed blocks, crumbled platforms, and moved creatures go back to their start, so a puzzle can never be left unsolvable.
 - **Permanent changes save at once:** opened shortcuts, broken walls, colors, and collectibles.
 - **Autosave** happens on entering each room, on each color, and on each collectible, with three save slots.
@@ -493,6 +494,71 @@ Decided Oct 10, 2026, with @Ben's bigger Ember Spirit Room (180 tiles wide):
   East's shortcut chamber; with gates leading back where they came from, nothing reached it, so
   the shaft and chamber are solid rock and the shortcut gate was removed from that room. The
   walk home from Ember Gate is long until a region shortcut is designed.
+
+### Sunlit Meadow as built (v1.0.21)
+
+Region 2, built by Claude as a first draft for @Ben to adjust (Oct 22, 2026). It runs west from
+Meadow Edge, and every room centers on the dash, in all eight directions. Decided with @Ben
+before building:
+
+- **Hard comes from the level, not the controls.** Coyote time, the jump buffer, and corner
+  correction stay as they are everywhere; the precision is in the geometry: landings a tile or
+  two wide, gaps at the edge of dash reach, thorns a few px from the path.
+- **The difficulty ramps up.** The first rooms teach each dash trick with room to spare, the later
+  ones leave a few px, and the Spirit Room is the hardest.
+- **No way back yet.** The Meadow has no shortcut toward the Hollow; @Ben will route it later.
+
+The rooms, east to west (all in `rooms/meadow/`):
+
+| Room | What it asks | Tightest spot |
+| --- | --- | --- |
+| Meadow Edge | (the slice's end room; its west wall is now open) | |
+| Meadow Hop | Jump-dash a safe dip, then a thorn pit; jump and dash up-left to a high ledge | |
+| Meadow Shaft | Up-dash from ledge to ledge; an ember for a second up-dash at the top | |
+| Meadow Embers | Embers refill the dash: jump-dash-dash over one pit; hop and three dashes under a thorn ceiling | Head clears the ceiling by 10 px |
+| Meadow Flowers | Bounce and up-dash over a wall; bounce under thorns and dash out a side opening; flower to a one-tile pillar's flower, then up-left | The pillar's flower: about 6 px |
+| Meadow Breakers | Dash through cracked rock left, down (twice), up through a ceiling, and up-left through a corner block; a low corridor's thorns need a jump-dash | |
+| Meadow Bees | Lure a bee into thorns; pillar to pillar with a bee over each, which dives on anyone who stops | Bees 120 px over the pillars: a jump clears them by about 14 px |
+| Meadow Thicket | A thorn chimney 8 px wider than the hero (two up-dashes); three dashes off a ledge under thorns; bounce and up-dash at the top; crumbling ledges; dash through cracked rock | Chimney: 8 px of play |
+| Meadow Gate | The Spirit Room gate (yellow), a checkpoint, and a shelf 12 tiles up, out of reach until the double jump (the way to the Canopy) | |
+| Meadow Spirit Room | Five sections: four chained up-dashes in a thorn shaft; six dashes through cracked pillars under thorns; flowers with bees over the landings; down through two cracked floors and right through rock; crumbling ledges to the yellow orb | |
+
+- **Proven by a bot.** `tests/meadow_playthrough.tscn` plays the region with orange returned,
+  from Meadow Edge to the yellow color and back out of the Spirit Room, all with timed button
+  presses. A clean bot run of the Spirit Room takes 16 s; players will take far longer.
+- **Bees belong over landings, not over forced bounces.** A bee over a flower dove onto the hero
+  it had seen falling in; bees now hang over ledges, where they punish stopping.
+- **Breaking cracked rock costs a dash one frame of travel** (about 9 px), so an ember after a
+  smashed pillar sits where that dash really ends.
+- **Walking onto a bounce flower launches the hero**, as its description always said (before,
+  only falling onto one did).
+
+### Waystones and travel (v1.0.23)
+
+Decided with @Ben, Oct 22, 2026:
+
+- **One waystone per region,** a tall runed stone beside its Spirit Gate. It's a checkpoint from
+  the start. Once that region's Spirit Room is beaten (its color returned), its rune glows in the
+  color with motes rising, and Interact opens the travel menu.
+- **The travel menu** lists the Hollow and every region whose waystone is awake (not the one
+  you're in), then Stay. Picking one travels there behind the letterbox and arrives at that
+  stone, which becomes the respawn point. Not inside Spirit Rooms.
+- **The Hollow's ring:** a stepped half-ring of six stones at the foot of the great tree, one per
+  region in color order (orange, yellow, green rising on the left; red, purple, blue on the
+  right), each dark until its color returns, then glowing; with the Hollow stone at the center,
+  always awake, where travel home arrives. Any awake stone opens the same menu.
+- **Runes:** every stone kind has its own. Checkpoint stones: one rune per region (Ember Grove
+  keeps the original). Waystones: a different rune per region, the same on its ring stone in the
+  Hollow, so the two read as a pair. The Hollow stone: the home rune.
+
+| | Checkpoint stones | Waystone (and its ring stone) |
+| --- | --- | --- |
+| Ember Grove | ᚦ (2) | ᛇ (12), orange |
+| Sunlit Meadow | ᚹ (7) | ᛜ (11), yellow |
+| Canopy, Briar, Caverns, Falls | 20, 4, 1, 15 | 14, 13, 18, 22 |
+| The Hollow stone | | ᛟ (23), white |
+
+(Numbers are glyphs in `art/entities/runes.png`.)
 
 ## Open questions
 

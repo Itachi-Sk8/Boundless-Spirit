@@ -16,6 +16,7 @@ const ROOMS_DIR := "res://rooms/"
 const SKIP_DIRS: Array[String] = ["test"]
 const CHECKPOINT_SCENE := "res://entities/checkpoint_stone.tscn"
 const GATE_SCENE := "res://entities/spirit_gate.tscn"
+const WAYSTONE_SCENE := "res://entities/waystone.tscn"
 ## Region ids (Room.region) and the names the map shows for them.
 const REGION_NAMES := {
 	&"hollow": "The Hollow", &"ember_grove": "Ember Grove", &"meadow": "Sunlit Meadow",
@@ -24,7 +25,7 @@ const REGION_NAMES := {
 }
 
 # Room id -> {scene, origin (tiles), size (tiles), region, spirit_room, rows (layout),
-# checkpoints, doors}. Read from the room scenes the first time it's needed.
+# checkpoints, doors, waystones}. Read from the room scenes the first time it's needed.
 static var _rooms := {}
 
 
@@ -32,7 +33,7 @@ static var _rooms := {}
 ## tiles), "region" (StringName), "spirit_room" (bool), "rows" (the layout's rows), and
 ## "checkpoints" (checkpoint stone positions in room px), and "doors" (each Spirit Room
 ## entrance gate: {"target": the room it leads to, "spot": where the hero stands in its doorway,
-## room px}).
+## room px}), and "waystones" (each {"kind": Waystone.Kind, "color", "spot": room px}).
 static func rooms() -> Dictionary:
 	if _rooms.is_empty():
 		for path in _room_scenes(ROOMS_DIR):
@@ -106,6 +107,23 @@ static func door_into(id: StringName) -> Dictionary:
 	return {}
 
 
+## Where travel can go: the Hollow's center stone and every region's waystone, each
+## {"room", "kind" (Waystone.Kind), "color", "spot" (world px)}, the Hollow first, then the
+## regions in color order. Awake or not; the travel menu checks.
+static func travel_stops() -> Array:
+	var stops := []
+	for id: StringName in rooms():
+		for stone: Dictionary in rooms()[id]["waystones"]:
+			if stone["kind"] != Waystone.Kind.RING:
+				stops.append({"room": id, "kind": stone["kind"], "color": stone["color"],
+						"spot": rect_px(id).position + stone["spot"]})
+	stops.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		var rank_a: int = -1 if a["kind"] == Waystone.Kind.HOLLOW else a["color"]
+		var rank_b: int = -1 if b["kind"] == Waystone.Kind.HOLLOW else b["color"]
+		return rank_a < rank_b)
+	return stops
+
+
 ## Pairs of world rooms that overlap (each a two-item Array of ids): every one is a mistake.
 ## Spirit Rooms stand apart, so they never overlap anything.
 static func overlaps() -> Array:
@@ -137,6 +155,7 @@ static func _read_room(path: String) -> Dictionary:
 	var info := {
 		"scene": path, "origin": Vector2i.ZERO, "size": Vector2i.ZERO, "region": &"hollow",
 		"spirit_room": false, "rows": PackedStringArray(), "checkpoints": [], "doors": [],
+		"waystones": [],
 	}
 	var state := (load(path) as PackedScene).get_state()
 	var offsets := {}  # node path -> position in the room
@@ -173,6 +192,13 @@ static func _read_room(path: String) -> Dictionary:
 			var door := _door(properties, offset)
 			if not door.is_empty():
 				info["doors"].append(door)
+		elif instance and instance.resource_path == WAYSTONE_SCENE:
+			var script: Script = Waystone
+			info["waystones"].append({
+				"kind": properties.get(&"kind", script.get_property_default_value(&"kind")),
+				"color": properties.get(&"color", script.get_property_default_value(&"color")),
+				"spot": offset,
+			})
 	if info["spirit_room"]:
 		info["origin"] = Vector2i.ZERO
 	var rows: PackedStringArray = info["rows"]
