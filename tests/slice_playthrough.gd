@@ -220,14 +220,16 @@ func back_to_the_hollow() -> void:
 
 
 func dash_gap() -> void:
-	await run_to(-100.0)
-	await leap(-150.0, 224.0, "onto the little rise")
+	# Hollow West's spots, from its left edge (rooms can move).
+	var west := WorldMap.rect_px(&"hollow_west").position.x
+	await run_to(west + 540.0)
+	await leap(west + 490.0, 224.0, "onto the little rise")
 	if _aborted:
 		return
 	var deaths := GameState.deaths
 	# Run at the gap, jump from its edge, and dash left at the top of the jump.
 	_hold(&"move_left")
-	await until(func() -> bool: return hero.global_position.x <= -282.0, 300)
+	await until(func() -> bool: return hero.global_position.x <= west + 358.0, 300)
 	_hold(&"jump")
 	await until(func() -> bool: return hero.velocity.y >= 0.0, 60)
 	_hold(&"dash")
@@ -236,7 +238,7 @@ func dash_gap() -> void:
 	_release(&"jump")
 	await until(func() -> bool: return hero.is_on_floor() or GameState.deaths > deaths, 120)
 	_release(&"move_left")
-	check("dashed across the Hollow's wide gap", GameState.deaths == deaths and hero.global_position.x < -512.0,
+	check("dashed across the Hollow's wide gap", GameState.deaths == deaths and hero.global_position.x < west + 128.0,
 			"at %s, deaths %d" % [hero.global_position, GameState.deaths - deaths])
 	if GameState.deaths != deaths:
 		_aborted = true
@@ -244,7 +246,7 @@ func dash_gap() -> void:
 
 func meadow_end() -> void:
 	await run_until_room(&"meadow_edge", -1.0)
-	await run_to(-830.0)
+	await run_to(WorldMap.rect_px(&"meadow_edge").position.x + 290.0)
 
 
 # --- Moves ---------------------------------------------------------------------------------

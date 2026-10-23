@@ -12,7 +12,7 @@
 
 [node name="MeadowBees" type="Node2D"]
 script = ExtResource("room")
-world_origin = Vector2i(-416, -50)
+world_origin = Vector2i(-435, -50)
 region = "meadow"
 
 [node name="Props" type="Node2D" parent="."]

@@ -70,7 +70,13 @@ To change the size, select the room's root node and open **Room Size** in the In
   undoes it.
 - A room with a text Layout gains or loses rows and columns of `.` in its Layout. A room painted
   by hand gets a **Size Tiles** value instead (zero means "as big as the painted tiles").
-- After saving another room, press **Refresh neighbours** to see its new outline.
+- **Push Neighbours** (on by default) moves every room beyond the edge you're moving by the
+  same amount, so the rooms next door stay touching and nothing overlaps: add 5 columns on the
+  left and every room west of this one moves 5 tiles west. It changes their World Origin in
+  their own files (Godot asks to reload any that are open, so save those first). Spirit Rooms
+  never move. Ctrl+Z moves them back. Turn it off to resize without touching other rooms.
+- After saving another room, press **Refresh neighbours** to see its new outline. It only
+  redraws: it never moves rooms, so a red overlap it shows is real.
 
 ## 4. Spawn points
 

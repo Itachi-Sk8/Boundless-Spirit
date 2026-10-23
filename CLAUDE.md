@@ -103,6 +103,9 @@ gamemaker-legacy/  the old GameMaker prototype and raw asset packs (reference on
   they overlap), and its Room Size buttons call `resize_side()`, which adds or removes layout
   rows/columns (or sets `size_tiles` for a painted room) and, on the top or left, moves every
   placed node and `world_origin` so nothing shifts; one Ctrl+Z step via EditorUndoRedoManager.
+  With `push_neighbours` (on by default) every non-Spirit room entirely beyond that edge moves
+  by the same amount: `_move_rooms()` rewrites the `world_origin` line in their scene files
+  (and the undo step rewrites it back).
   `size_tiles` (per axis, 0 = from the terrain) is read by `WorldMap` too. Run any room with F6 and the game starts in it. Room `.tscn` files are edited in
   the Godot editor and are the source of truth: change them in place, never regenerate them.
 - **Terrain from text** (`rooms/terrain_layout.gd`, a `@tool` TileMapLayer): paints the room

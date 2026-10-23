@@ -47,6 +47,10 @@ var region := "hollow"
 		_redraw_outline()
 ## How many rows or columns each button below adds or takes away.
 @export_range(1, 50) var resize_step := 1
+## When on, the buttons also move every room beyond the edge being moved (their World Origin,
+## saved in their own scene files) by the same amount, so the rooms next door stay touching and
+## nothing overlaps. Spirit Rooms never move. Ctrl+Z moves them back too.
+@export var push_neighbours := true
 @export_tool_button("Add rows on top", "ArrowUp") var add_top_button := _add_top
 @export_tool_button("Remove rows on top", "ArrowDown") var remove_top_button := _remove_top
 @export_tool_button("Add rows at bottom", "ArrowDown") var add_bottom_button := _add_bottom
@@ -134,7 +138,8 @@ func reset_room() -> void:
 ## Grow (`amount` > 0) or shrink (`amount` < 0) the room on one side, in tiles. A text layout
 ## gains or loses rows or columns of empty tiles; a room painted by hand gets a Room Size. On the
 ## top or left, everything in the room moves along and World Origin moves the other way, so
-## nothing moves in the world. In the editor it's one step that Ctrl+Z undoes.
+## nothing moves in the world. With `push_neighbours`, the rooms beyond that edge move with it.
+## In the editor it's one step that Ctrl+Z undoes.
 func resize_side(side: Side, amount: int) -> void:
 	var axis := 0 if side == SIDE_LEFT or side == SIDE_RIGHT else 1
 	var size := size_in_tiles()
@@ -165,7 +170,8 @@ func resize_side(side: Side, amount: int) -> void:
 		if bounds.size != Vector2.ZERO:
 			changes.append([self, &"bounds", bounds, Rect2(bounds.position + px, bounds.size)])
 	var label := "%s %d %s" % ["Add" if amount > 0 else "Remove", absi(amount), "rows" if axis == 1 else "columns"]
-	_apply(changes, "Room size: " + label)
+	var moves := _neighbours_beyond(side, amount) if push_neighbours and Engine.is_editor_hint() else []
+	_apply(changes, "Room size: " + label, moves)
 
 
 ## Put each part of the room on its color layer (see WorldColor): trees behind, decoration in
@@ -304,8 +310,67 @@ func _placed_nodes() -> Array[CanvasItem]:
 	return placed
 
 
-# Make the changes: in the editor as one undoable step, otherwise (tests) directly.
-func _apply(changes: Array, action: String) -> void:
+# The rooms entirely beyond the edge on `side`, and how far they move with it: [[scene path,
+# shift in tiles], ...]. Read from the saved rooms; Spirit Rooms stand apart and never move.
+func _neighbours_beyond(side: Side, amount: int) -> Array:
+	var area := _terrain_bounds()
+	var mine := Rect2(Vector2(world_origin * TILE) + area.position, area.size)
+	var shift := Vector2i.ZERO
+	match side:
+		SIDE_LEFT: shift.x = -amount
+		SIDE_RIGHT: shift.x = amount
+		SIDE_TOP: shift.y = -amount
+		SIDE_BOTTOM: shift.y = amount
+	WorldMap.reload()
+	var moves := []
+	for id: StringName in WorldMap.rooms():
+		var path := WorldMap.scene_of(id)
+		if path == scene_file_path or WorldMap.is_spirit_room(id):
+			continue
+		var rect := WorldMap.rect_px(id)
+		var beyond: bool
+		match side:
+			SIDE_LEFT: beyond = rect.end.x <= mine.position.x + 0.5
+			SIDE_RIGHT: beyond = rect.position.x >= mine.end.x - 0.5
+			SIDE_TOP: beyond = rect.end.y <= mine.position.y + 0.5
+			SIDE_BOTTOM: beyond = rect.position.y >= mine.end.y - 0.5
+		if beyond:
+			moves.append([path, shift])
+	return moves
+
+
+# Move other rooms by rewriting the World Origin line in their scene files (`direction` 1 does
+# `moves`, -1 undoes them). A room open in the editor asks to reload.
+func _move_rooms(moves: Array, direction: int) -> void:
+	var origin_line := RegEx.create_from_string("(?m)^world_origin = Vector2i\\((-?\\d+), (-?\\d+)\\)$")
+	var names := PackedStringArray()
+	for move: Array in moves:
+		var path: String = move[0]
+		var shift: Vector2i = move[1] * direction
+		var text := FileAccess.get_file_as_string(path)
+		var found := origin_line.search(text)
+		var origin := Vector2i(int(found.get_string(1)), int(found.get_string(2))) if found else Vector2i.ZERO
+		var line := "world_origin = Vector2i(%d, %d)" % [origin.x + shift.x, origin.y + shift.y]
+		if found:
+			text = text.substr(0, found.get_start()) + line + text.substr(found.get_end())
+		else:
+			# No World Origin saved (it's 0, 0): add one to the root node, the first node.
+			var root := text.find("\n", text.find("[node "))
+			text = text.substr(0, root + 1) + line + "\n" + text.substr(root + 1)
+		var file := FileAccess.open(path, FileAccess.WRITE)
+		file.store_string(text)
+		file.close()
+		names.append(path.get_file().get_basename())
+		if Engine.is_editor_hint() and Engine.has_singleton(&"EditorInterface"):
+			Engine.get_singleton(&"EditorInterface").call(&"get_resource_filesystem").call(&"update_file", path)
+	if not names.is_empty():
+		print("Room size: moved %d rooms with it (%s)." % [names.size(), ", ".join(names)])
+	_read_neighbours()
+
+
+# Make the changes: in the editor as one undoable step, otherwise (tests) directly. `moves`
+# are other rooms to move along (see _neighbours_beyond).
+func _apply(changes: Array, action: String, moves := []) -> void:
 	var undo: Object = null
 	if Engine.is_editor_hint() and Engine.has_singleton(&"EditorInterface"):
 		undo = Engine.get_singleton(&"EditorInterface").call(&"get_editor_undo_redo")
@@ -314,12 +379,17 @@ func _apply(changes: Array, action: String) -> void:
 		for change: Array in changes:
 			undo.call(&"add_do_property", change[0], change[1], change[3])
 			undo.call(&"add_undo_property", change[0], change[1], change[2])
+		if not moves.is_empty():
+			undo.call(&"add_do_method", self, &"_move_rooms", moves, 1)
+			undo.call(&"add_undo_method", self, &"_move_rooms", moves, -1)
 		undo.call(&"add_do_method", self, &"_redraw_outline")
 		undo.call(&"add_undo_method", self, &"_redraw_outline")
 		undo.call(&"commit_action")
 	else:
 		for change: Array in changes:
 			(change[0] as Object).set(change[1], change[3])
+		if not moves.is_empty():
+			_move_rooms(moves, 1)
 
 
 # --- Editor outline -------------------------------------------------------------------------

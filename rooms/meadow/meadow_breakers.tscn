@@ -9,7 +9,7 @@
 
 [node name="MeadowBreakers" type="Node2D"]
 script = ExtResource("room")
-world_origin = Vector2i(-346, -46)
+world_origin = Vector2i(-365, -46)
 region = "meadow"
 
 [node name="Props" type="Node2D" parent="."]

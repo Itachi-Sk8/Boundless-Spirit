@@ -123,6 +123,34 @@ func test_room_size() -> void:
 			and tiles.get_cell_atlas_coords(Vector2i(2, 15)) == edge and painted.world_origin.x == 58,
 			"%s %s" % [painted.size_tiles, painted.world_origin])
 	painted.free()
+	# Push Neighbours: the rooms beyond an edge move with it, in their own scene files.
+	var clearing: Room = load(WorldMap.scene_of(&"hollow_clearing")).instantiate()
+	add_child(clearing)
+	var ids := func(moves: Array) -> Array:
+		return moves.map(func(move: Array) -> String: return String(move[0]).get_file().get_basename())
+	var west: Array = ids.call(clearing._neighbours_beyond(SIDE_LEFT, 3))
+	var east: Array = ids.call(clearing._neighbours_beyond(SIDE_RIGHT, 3))
+	var shift: Vector2i = clearing._neighbours_beyond(SIDE_LEFT, 3)[0][1]
+	check("  Push Neighbours: growing a side moves every room beyond that edge the same way, never a Spirit Room",
+			"hollow_west" in west and "meadow_gate" in west and not "hollow_east" in west
+			and "hollow_east" in east and "ember_gate" in east and not "hollow_west" in east
+			and not "ember_spirit_room" in east and shift == Vector2i(-3, 0), "%s / %s" % [west, east])
+	var path := "user://push_test.tscn"
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	file.store_string('[gd_scene format=3]\n\n[node name="Test" type="Node2D"]\n\n[node name="Terrain" type="Node2D" parent="."]\n')
+	file.close()
+	clearing._move_rooms([[path, Vector2i(-3, 0)]], 1)
+	var once := FileAccess.get_file_as_string(path)
+	clearing._move_rooms([[path, Vector2i(0, 2)]], 1)
+	var twice := FileAccess.get_file_as_string(path)
+	clearing._move_rooms([[path, Vector2i(0, 2)]], -1)
+	clearing._move_rooms([[path, Vector2i(-3, 0)]], -1)
+	check("  it writes the moved World Origin into the room's file (adding it at 0, 0), and undoes it",
+			once.contains('[node name="Test" type="Node2D"]\nworld_origin = Vector2i(-3, 0)\n')
+			and twice.contains("world_origin = Vector2i(-3, 2)")
+			and FileAccess.get_file_as_string(path).contains("world_origin = Vector2i(0, 0)"), once)
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+	clearing.free()
 
 
 func test_checkpoint_respawn() -> void:
